@@ -1,93 +1,65 @@
 # Proper Social Distancing
+In light of recent experiences we’ve all become a bit more aware of social distancing,
+and have changed our default behaviours to encourage it. For instance, a pedestrian
+wishes to walk from the northwest corner of a large gridded network of walkways to
+the southeast corner. There are people seated at benches at some of the intersection
+points. To show proper social responsibility, the pedestrian wants to keep as far away
+from the other people as they can. That is, they aim to find a path whose minimum
+distance from a seated person is as large as possible (the distance between two points
+in the grid is the sum of their horizontal and vertical separations).
+In a further (and possibly over the top) fit of conscientiousness, they also want to ensure
+that, subject to meeting the first criterion, the total distance between the path and the
+seated people (i.e., the sum of the minimum distances to each seated person) should be
+as large as possible.
+## Example
+In the grid below seated people are marked with dots, and a (not necessarily unique)
+best path is drawn in red. This is justified as follows – clearly the upper left sitter and
+lower right sitter mean the best minimum distance is 2 (and that distance is forced for
+those two points). The maximum distance we could have for the upper right sitter is 6
+since we have to cross their horizontal line somewhere. The first two steps are forced,
+so the best possible for the lower left sitter is also 6 - but the third step must reduce
+the distance to either the upper right or lower left by 1. Choosing a down step, the
+pedestrian can then succeed in keeping their distance from those two points by the zig
+zag pattern. This results in a total distance of 15 (2 + 6 + 5 + 2).
 
+![Example Image](exampleimage.png)
 
+## Task
+Write a program to find the optimum minimum distance, and also the optimum total
+distance for that minimum in a sequence of scenarios contained in an input file read in
+from stdin.
 
-## Getting started
+## Input Format
+Each scenario begins with a line containing the number of horizontal walkways
+and the number of vertical walkways.
+- Each additional line of a scenario describes the locations of the seated people in
+row-column order (with the upper left at 0 0), increasing from top to bottom and
+from left to right.
+- Each scenario is separated from the next by a blank line.
+You may assume that there are at most 100 vertical and 100 horizontal walkways, and
+at most 500 seated people in a scenario.
+The scenario corresponding to the example above would be:
+> 9 8
+> 8 0
+> 1 2
+> 2 6
+> 6 6
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+## Output Format
+For each scenario print (to stdout) a line of the following form:
+> min M, total T
+where M and T are the largest possible minimum distance achievable and the largest
+possible total distance achievable for the minimum. So, the output for the scenario
+above should be
+> min 2, total 15
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+## Standards
+For an achieved standard, the program must work correctly on valid input representing
+walkways of size 30 or less, and at most 20 seated people.
+Merit criteria include the ability to handle much larger walkways and seated people
+efficiently and clearly written code.
+Excellence criteria include some significant extension to the functionality of the program, or an investigation of general properties of the problem.
 
-## Add your files
-
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
-
-```
-cd existing_repo
-git remote add origin https://altitude.otago.ac.nz/cosc326-groupwork/proper-social-distancing.git
-git branch -M main
-git push -uf origin main
-```
-
-## Integrate with your tools
-
-- [ ] [Set up project integrations](https://altitude.otago.ac.nz/cosc326-groupwork/proper-social-distancing/-/settings/integrations)
-
-## Collaborate with your team
-
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
-
-## Test and Deploy
-
-Use the built-in continuous integration in GitLab.
-
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
-
-***
-
-# Editing this README
-
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+## Objectives
+1.1, 1.2, 1.3, 1.4, 2.1, 2.2, 2.4, 26., 2.7, 2.10, 3.3, 3.4, 3.5, 3.6, 4.1, 4.2, 4.3.
+(Group)

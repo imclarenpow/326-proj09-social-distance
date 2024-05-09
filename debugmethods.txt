@@ -1,0 +1,6 @@
+public static void debugInputHandling(){
+        System.out.println("Grid Size: " + gridSize[0] + " " + gridSize[1] + "\nPeople: " + people.size() + "\nPlayer: " + player.toString());
+        for(Point p : people){
+            System.out.println(p.toString());
+        }
+    }

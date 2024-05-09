@@ -3,9 +3,9 @@ import java.awt.Point;
 import java.util.Scanner;
 
 public class Distancing{
-    private static ArrayList<Point> people = new ArrayList<>();
-    private static Point player = new Point(0,0);
-    private static int[] gridSize = new int[2];
+    private static ArrayList<Point> people = new ArrayList<>(); // arraylist of the points that people are at
+    private static Point player = new Point(0,0); // the point that moving person / player is at
+    private static int[] gridSize = new int[2]; // size of the grid (also the end point)
 
     public static void main(String[] args){
         ArrayList<String> rawIn = new ArrayList<>();
@@ -15,8 +15,10 @@ public class Distancing{
         }
         sc.close();
         inputHandler(rawIn);
-        debugInputHandling();
+        //debugInputHandling(); method in debug methods text file
     }
+
+    // handle input - doesn't do error handling, just adds input to the correct variables
     public static void inputHandler(ArrayList<String> input){
         gridSize = new int[]{Integer.parseInt(input.get(0).split(" ")[0]), Integer.parseInt(input.get(0).split(" ")[1])};
         for(int i = 1; i < input.size(); i++){
@@ -27,10 +29,5 @@ public class Distancing{
             }
         }
     }
-    public static void debugInputHandling(){
-        System.out.println("Grid Size: " + gridSize[0] + " " + gridSize[1] + "\nPeople: " + people.size() + "\nPlayer: " + player.toString());
-        for(Point p : people){
-            System.out.println(p.toString());
-        }
-    }
+    
 }

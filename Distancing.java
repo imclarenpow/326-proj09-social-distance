@@ -1,6 +1,5 @@
-import java.util.ArrayList;
+import java.util.*;
 import java.awt.Point;
-import java.util.Scanner;
 
 public class Distancing{
     private static ArrayList<Point> people = new ArrayList<>(); // arraylist of the points that people are at
@@ -24,14 +23,32 @@ public class Distancing{
         aStar(current, goal, path);
         return path;
     }
+    // the actual search algorithm
     public static void aStar(Point current, Point goal, ArrayList<Point> path){
-
+        PriorityQueue<State> costs = new PriorityQueue<>(Comparator.comparingInt(a -> a.cost));
+        Map<Point, Integer> costAtPt = new HashMap<>();
+        Map<Point, Point> cameFrom = new HashMap<>();
+        costs.add(new State(current, 0, sumOfDistance(current)));
+        costAtPt.put(current, 0);
+        
+        while(!costs.isEmpty()){
+            State curr = costs.poll(); // state with the lowest cost
+            if(curr.position.equals(goal)){
+                Point temp = curr.position;
+                while(temp != null){
+                    path.add(temp);
+                    temp = cameFrom.get(temp);
+                }
+                Collections.reverse(path);
+                return;
+            }
+            // write neighbours here
+        }
     }
 
     public static int heuristic(Point current, Point goal){
-        // pythagoras theorem for euclidean distance c = sqrt(a^2 + b^2)
-        double distance = Math.sqrt(Math.pow(Math.abs(current.getX() - goal.getX()), 2) + Math.pow(Math.abs(current.getY() - goal.getY()), 2));
-        return (int) distance;
+        int distance = Math.abs(current.x - goal.x) + Math.abs(current.y - goal.y);
+        return distance;
     }
 
     public static int sumOfDistance(Point current){

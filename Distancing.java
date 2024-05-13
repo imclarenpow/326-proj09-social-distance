@@ -28,6 +28,21 @@ public class Distancing{
 
     }
 
+    public static int heuristic(Point current, Point goal){
+        // pythagoras theorem for euclidean distance c = sqrt(a^2 + b^2)
+        double distance = Math.sqrt(Math.pow(Math.abs(current.getX() - goal.getX()), 2) + Math.pow(Math.abs(current.getY() - goal.getY()), 2));
+        return (int) distance;
+    }
+
+    public static int sumOfDistance(Point current){
+        int output = 0;
+        for(Point p : people){
+            output += Math.abs(current.getX() - p.getX());
+            output += Math.abs(current.getY() - p.getY());
+        }
+        return output;
+    }
+
     // handle input - doesn't do error handling, just adds input to the correct variables
     public static void inputHandler(ArrayList<String> input){
         gridSize = new int[]{Integer.parseInt(input.get(0).split(" ")[0]), Integer.parseInt(input.get(0).split(" ")[1])};
@@ -39,5 +54,14 @@ public class Distancing{
             }
         }
     }
-    
+    static class State{
+        Point position;
+        int cost;
+        int sumOfDistance;
+        public State(Point position, int cost, int sumOfDistance){
+            this.position = position;
+            this.cost = cost;
+            this.sumOfDistance = sumOfDistance;
+        }
+    }
 }

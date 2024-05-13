@@ -4,7 +4,6 @@ import java.util.Scanner;
 
 public class Distancing{
     private static ArrayList<Point> people = new ArrayList<>(); // arraylist of the points that people are at
-    private static Point player = new Point(0,0); // the point that moving person / player is at
     private static int[] gridSize = new int[2]; // size of the grid (also the end point)
 
     public static void main(String[] args){
@@ -16,6 +15,17 @@ public class Distancing{
         sc.close();
         inputHandler(rawIn);
         //debugInputHandling(); method in debug methods text file
+    }
+    // handler for the recursive function
+    public static ArrayList<Point> aStarter(){
+        ArrayList<Point> path = new ArrayList<>();
+        Point goal = new Point(gridSize[0]-1, gridSize[1]-1);
+        Point current = new Point(0,0);
+        aStar(current, goal, path);
+        return path;
+    }
+    public static void aStar(Point current, Point goal, ArrayList<Point> path){
+
     }
 
     // handle input - doesn't do error handling, just adds input to the correct variables

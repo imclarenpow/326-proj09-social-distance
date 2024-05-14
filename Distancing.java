@@ -25,14 +25,14 @@ public class Distancing{
     }
     // the actual search algorithm
     public static void aStar(Point current, Point goal, ArrayList<Point> path){
-        PriorityQueue<State> costs = new PriorityQueue<>(Comparator.comparingInt(a -> a.cost));
+        PriorityQueue<State> costs = new PriorityQueue<>(Comparator.comparingInt(a -> a.sumOfDistance));
         Map<Point, Integer> costAtPt = new HashMap<>();
         Map<Point, Point> cameFrom = new HashMap<>();
-        costs.add(new State(current, 0, sumOfDistance(current)));
+        costs.add(new State(current, sumOfDistance(current)));
         costAtPt.put(current, 0);
         
         while(!costs.isEmpty()){
-            State curr = costs.poll(); // state with the lowest cost
+            State curr = costs.poll(); // state with the lowest cost (best path)
             if(curr.position.equals(goal)){
                 Point temp = curr.position;
                 while(temp != null){
@@ -42,7 +42,21 @@ public class Distancing{
                 Collections.reverse(path);
                 return;
             }
-            // write neighbours here
+            // neighbours will be the points to the right and below the current point
+            Point neighbourX = new Point(curr.position.x + 1, curr.position.y);
+            Point neighbourY = new Point(curr.position.x, curr.position.y + 1);
+            int costX = curr.sumOfDistance + sumOfDistance(neighbourX);
+            int costY = curr.sumOfDistance + sumOfDistance(neighbourY);
+            if(!costAtPt.containsKey(neighbourY) || costY < costAtPt.get(neighbourY)){
+                costAtPt.put(neighbourY, costY);
+                costs.add(new State(neighbourY, costY));
+                cameFrom.put(neighbourY, curr.position);
+            }
+            if(!costAtPt.containsKey(neighbourX) || costX < costAtPt.get(neighbourX)){
+                costAtPt.put(neighbourX, costX);
+                costs.add(new State(neighbourX, costX));
+                cameFrom.put(neighbourX, curr.position);
+            }
         }
     }
 
@@ -73,11 +87,9 @@ public class Distancing{
     }
     static class State{
         Point position;
-        int cost;
-        int sumOfDistance;
-        public State(Point position, int cost, int sumOfDistance){
+        int sumOfDistance; // adds sum of previous distance also
+        public State(Point position, int sumOfDistance){
             this.position = position;
-            this.cost = cost;
             this.sumOfDistance = sumOfDistance;
         }
     }

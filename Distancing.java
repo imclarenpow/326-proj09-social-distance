@@ -14,6 +14,14 @@ public class Distancing{
         sc.close();
         inputHandler(rawIn);
         ArrayList<Point> points = aStarter();
+        int smallestDistance = Integer.MAX_VALUE;
+        for(int i=0; i<points.size(); i++){
+            int temp = closestPointDistance(points.get(i), people);
+            if(temp < smallestDistance){
+                smallestDistance = temp;
+            }
+        }
+        System.out.println("min " + smallestDistance + ", total " + points.size());
         visualisation(points);
     }
     // handler for the recursive function

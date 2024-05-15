@@ -46,9 +46,10 @@ public class Distancing{
             // neighbours will be the points to the right and below the current point
             Point neighbourX = new Point(curr.position.x + 1, curr.position.y);
             Point neighbourY = new Point(curr.position.x, curr.position.y + 1);
-            //TODO : figure out what these values should be to get correct movement
-            int costX = curr.sumOfDistance + sumOfDistance(neighbourX) - closestPointDistance(neighbourX, people);
-            int costY = curr.sumOfDistance + sumOfDistance(neighbourY) - closestPointDistance(neighbourY, people);
+            // i think this is right? it uses manhattan distance and then incentivises staying as far away as possible from the closest point
+            // however it may have some issues if the closest point is further away than the hueristic
+            int costX = curr.sumOfDistance + heuristic(neighbourX, goal) - closestPointDistance(neighbourX, people);
+            int costY = curr.sumOfDistance + heuristic(neighbourY, goal) - closestPointDistance(neighbourY, people);
             if(!costAtPt.containsKey(neighbourY) || costY < costAtPt.get(neighbourY)){
                 costAtPt.put(neighbourY, costY);
                 costs.add(new State(neighbourY, costY));

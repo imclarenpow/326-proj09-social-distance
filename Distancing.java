@@ -14,12 +14,12 @@ public class Distancing{
         sc.close();
         inputHandler(rawIn);
         ArrayList<Point> points = aStarter();
-        
+        visualisation(points);
     }
     // handler for the recursive function
     public static ArrayList<Point> aStarter(){
         ArrayList<Point> path = new ArrayList<>();
-        Point goal = new Point(gridSize[0]-1, gridSize[1]-1);
+        Point goal = new Point(gridSize[0], gridSize[1]);
         Point current = new Point(0,0);
         aStar(current, goal, path);
         return path;
@@ -46,8 +46,9 @@ public class Distancing{
             // neighbours will be the points to the right and below the current point
             Point neighbourX = new Point(curr.position.x + 1, curr.position.y);
             Point neighbourY = new Point(curr.position.x, curr.position.y + 1);
-            int costX = curr.sumOfDistance + sumOfDistance(neighbourX);
-            int costY = curr.sumOfDistance + sumOfDistance(neighbourY);
+            //TODO : figure out what these values should be to get correct movement
+            int costX = curr.sumOfDistance + sumOfDistance(neighbourX) - closestPointDistance(neighbourX, people);
+            int costY = curr.sumOfDistance + sumOfDistance(neighbourY) - closestPointDistance(neighbourY, people);
             if(!costAtPt.containsKey(neighbourY) || costY < costAtPt.get(neighbourY)){
                 costAtPt.put(neighbourY, costY);
                 costs.add(new State(neighbourY, costY));
@@ -86,6 +87,49 @@ public class Distancing{
             }
         }
     }
+    public static int closestPointDistance(Point current, ArrayList<Point> points){
+        int min = Integer.MAX_VALUE;
+        for(Point p : points){
+            int distance = Math.abs(current.x - p.x) + Math.abs(current.y - p.y);
+            if(distance < min){
+                min = distance;
+            }
+        }
+        return min;
+    }
+
+    public static void visualisation(ArrayList<Point> points){
+        char[][] grid = new char[gridSize[0] + 1][gridSize[1] + 1];
+        for(char[] row : grid){
+            Arrays.fill(row, '.');
+        }
+        for(Point p : points){
+            grid[p.x][p.y] = 'x';
+        }
+        for(Point p : people){
+            grid[p.x][p.y] = 'P';
+        }
+        
+        // Print the grid with x and y axis
+        System.out.print("   ");
+        for (int i = 0; i <= gridSize[1]; i++) {
+            System.out.print(" " + i);
+        }
+        System.out.println();
+        System.out.print("   ");
+        for(int i = 0; i <= gridSize[1]; i++){
+            System.out.print("--");
+        }
+        System.out.println();
+        for (int i = 0; i <= gridSize[0]; i++) {
+            System.out.print(i + " | ");
+            for (int j = 0; j <= gridSize[1]; j++) {
+            System.out.print(grid[i][j] + " ");
+            }
+            System.out.println();
+        }
+    }
+
     static class State{
         Point position;
         int sumOfDistance; // adds sum of previous distance also

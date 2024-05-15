@@ -101,13 +101,15 @@ public class Distancing{
     }
     public static int closestPointDistance(Point current, ArrayList<Point> points){
         int min = Integer.MAX_VALUE;
+        int sameD = 0;
         for(Point p : points){
             int distance = Math.abs(current.x - p.x) + Math.abs(current.y - p.y);
             if(distance < min){
                 min = distance;
+                sameD = 0;
             }
         }
-        return min;
+        return min+sameD;
     }
 
     public static void visualisation(ArrayList<Point> points){

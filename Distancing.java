@@ -93,8 +93,8 @@ public class Distancing {
             // staying as far away as possible from the closest point
             // however it may have some issues if the closest point is further away than the
             // hueristic
-            int costX = curr.sumOfDistance + heuristic(neighbourX, goal) - closestPointDistance(neighbourX, people);
-            int costY = curr.sumOfDistance + heuristic(neighbourY, goal) - closestPointDistance(neighbourY, people);
+            int costX = curr.sumOfDistance + heuristic(neighbourX, goal);
+            int costY = curr.sumOfDistance + heuristic(neighbourY, goal);
             if (!costAtPt.containsKey(neighbourY) || costY < costAtPt.get(neighbourY)) {
                 costAtPt.put(neighbourY, costY);
                 costs.add(new State(neighbourY, costY));
@@ -107,11 +107,23 @@ public class Distancing {
             }
         }
     }
-
+    // TODO: Figure out what a sensible heuristic function would be for this problem
     public static int heuristic(Point current, Point goal) {
-        int distance = Math.abs(current.x - goal.x) + Math.abs(current.y - goal.y);
-        return distance;
+        // Calculate the distance to the goal
+        int goalDistance = Math.abs(current.x - goal.x) + Math.abs(current.y - goal.y);
+        
+        int minDistanceToPerson = closestPointDistance(current, people);
+        double inverseDistanceToPerson = 1 / (double)minDistanceToPerson;
+        
+        // Combine the two components with some weight (you can adjust this weight)
+        int weightedDistanceToGoal = 25 * goalDistance; // Weight for goal-directed movement
+        double weightedDistanceToPerson = sumOfDistance(current) * inverseDistanceToPerson; // Weight for avoiding people
+        
+        // Return the combined heuristic value
+        return weightedDistanceToGoal + (int)weightedDistanceToPerson;
     }
+    
+    
 
     public static int sumOfDistance(Point current) {
         int output = 0;

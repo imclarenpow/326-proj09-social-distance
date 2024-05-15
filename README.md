@@ -46,12 +46,12 @@ The scenario corresponding to the example above would be:
 > 6 6<br>
 
 ## Output Format
-For each scenario print (to stdout) a line of the following form:
-> min M, total T
+For each scenario print (to stdout) a line of the following form:<br>
+> min M, total T<br>
 where M and T are the largest possible minimum distance achievable and the largest
 possible total distance achievable for the minimum. So, the output for the scenario
-above should be
-> min 2, total 15
+above should be:<br>
+> min 2, total 15<br>
 
 ## Standards
 For an achieved standard, the program must work correctly on valid input representing

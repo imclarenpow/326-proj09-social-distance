@@ -8,33 +8,60 @@ public class Distancing {
     public static void main(String[] args) {
         ArrayList<String> rawIn = new ArrayList<>();
         Scanner sc = new Scanner(System.in);
-        while (sc.hasNextLine()) {
-            rawIn.add(sc.nextLine());
-        }
-        sc.close();
-        inputHandler(rawIn);
-
-        /// testVisualisation(); Prints out the grid and the people but not the path,
-        /// for testing that the grid has been created correctly
-
-        ArrayList<Point> points = aStarter();
+        ArrayList<Point> points = new ArrayList<>();
         int totalDistance = 0;
         int smallestDistance = Integer.MAX_VALUE;
-        for (Point p : people) {
-            int temp = closestPointDistance(p, points);
-            totalDistance += temp;
-            if (temp < smallestDistance) {
-                smallestDistance = temp;
+        while (sc.hasNextLine()) {
+            String line = sc.nextLine();
+            if (line.isEmpty() && rawIn.size() > 0) {
+                inputHandler(rawIn);
+
+                // Prints out the grid and the people but not the path,
+                // for testing that the grid has been created correctly
+                // testVisualisation();
+
+                points = aStarter();
+                totalDistance = 0;
+                smallestDistance = Integer.MAX_VALUE;
+                for (Point p : people) {
+                    int temp = closestPointDistance(p, points);
+                    totalDistance += temp;
+                    if (temp < smallestDistance) {
+                        smallestDistance = temp;
+                    }
+                }
+                System.out.println("min " + smallestDistance + ", total " + totalDistance + "\n");
+                visualisation(points);
+                rawIn.clear();
+                people.clear();
+            } else {
+                rawIn.add(line);
             }
         }
-        System.out.println("min " + smallestDistance + ", total " + totalDistance);
-        visualisation(points);
+
+        sc.close();
+
+        if (rawIn.size() > 0) {
+            inputHandler(rawIn);
+            points = aStarter();
+            totalDistance = 0;
+            smallestDistance = Integer.MAX_VALUE;
+            for (Point p : people) {
+                int temp = closestPointDistance(p, points);
+                totalDistance += temp;
+                if (temp < smallestDistance) {
+                    smallestDistance = temp;
+                }
+            }
+            System.out.println("min " + smallestDistance + ", total " + totalDistance + "\n");
+            visualisation(points);
+        }
     }
 
     // handler for the recursive function
     public static ArrayList<Point> aStarter() {
         ArrayList<Point> path = new ArrayList<>();
-        Point goal = new Point(gridSize[1], gridSize[0]);
+        Point goal = new Point(gridSize[1] - 1, gridSize[0] - 1);
         Point current = new Point(0, 0);
         aStar(current, goal, path);
         return path;

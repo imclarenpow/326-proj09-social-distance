@@ -13,6 +13,10 @@ public class Distancing {
         }
         sc.close();
         inputHandler(rawIn);
+
+        /// testVisualisation(); Prints out the grid and the people but not the path,
+        /// for testing that the grid has been created correctly
+
         ArrayList<Point> points = aStarter();
         int totalDistance = 0;
         int smallestDistance = Integer.MAX_VALUE;
@@ -30,7 +34,7 @@ public class Distancing {
     // handler for the recursive function
     public static ArrayList<Point> aStarter() {
         ArrayList<Point> path = new ArrayList<>();
-        Point goal = new Point(gridSize[0], gridSize[1]);
+        Point goal = new Point(gridSize[1], gridSize[0]);
         Point current = new Point(0, 0);
         aStar(current, goal, path);
         return path;
@@ -100,7 +104,7 @@ public class Distancing {
             String line = input.get(i);
             String[] split = line.split(" ");
             if (Character.isDigit(split[0].trim().charAt(0)) && Character.isDigit(split[1].trim().charAt(0))) {
-                people.add(new Point(Integer.parseInt(split[0]), Integer.parseInt(split[1])));
+                people.add(new Point(Integer.parseInt(split[1]), Integer.parseInt(split[0])));
             }
         }
     }
@@ -117,38 +121,68 @@ public class Distancing {
     }
 
     public static void visualisation(ArrayList<Point> points) {
-        char[][] grid = new char[gridSize[0] + 1][gridSize[1] + 1];
+        char[][] grid = new char[gridSize[0]][gridSize[1]];
         for (char[] row : grid) {
             Arrays.fill(row, '.');
         }
         for (Point p : points) {
-            grid[p.x][p.y] = 'x';
+            grid[p.y][p.x] = 'x';
         }
         for (Point p : people) {
-            grid[p.x][p.y] = 'P';
+            grid[p.y][p.x] = 'P';
         }
 
         // Print the grid with x and y axis
         System.out.print("   ");
-        for (int i = 0; i <= gridSize[0]; i++) {
+        for (int i = 0; i < gridSize[1]; i++) {
             System.out.print(" " + i);
         }
         System.out.println();
         System.out.print("   ");
-        for (int i = 0; i <= gridSize[0]; i++) {
+        for (int i = 0; i < gridSize[1]; i++) {
             System.out.print("--");
         }
         System.out.println();
-        for (int j = 0; j <= gridSize[1]; j++) {
+        for (int j = 0; j < gridSize[0]; j++) {
             System.out.print(j + " | ");
-            for (int i = 0; i <= gridSize[0]; i++) {
-                System.out.print(grid[i][j] + " ");
+            for (int i = 0; i < gridSize[1]; i++) {
+                System.out.print(grid[j][i] + " ");
+            }
+            System.out.println();
+        }
+    }
+
+    public static void testVisualisation() {
+        char[][] grid = new char[gridSize[0]][gridSize[1]];
+        for (char[] row : grid) {
+            Arrays.fill(row, '.');
+        }
+        for (Point p : people) {
+            grid[p.y][p.x] = 'P';
+        }
+
+        // Print the grid with x and y axis
+        System.out.print("   ");
+        for (int i = 0; i < gridSize[1]; i++) {
+            System.out.print(" " + i);
+        }
+        System.out.println();
+        System.out.print("   ");
+        for (int i = 0; i < gridSize[1]; i++) {
+            System.out.print("--");
+        }
+        System.out.println();
+        for (int j = 0; j < gridSize[0]; j++) {
+            System.out.print(j + " | ");
+            for (int i = 0; i < gridSize[1]; i++) {
+                System.out.print(grid[j][i] + " ");
             }
             System.out.println();
         }
     }
 
     static class State {
+
         Point position;
         int sumOfDistance; // adds sum of previous distance also
 

@@ -13,7 +13,8 @@ public class Distancing{
         }
         sc.close();
         inputHandler(rawIn);
-        //debugInputHandling(); method in debug methods text file
+        ArrayList<Point> points = aStarter();
+        
     }
     // handler for the recursive function
     public static ArrayList<Point> aStarter(){

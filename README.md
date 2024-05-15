@@ -39,11 +39,11 @@ from left to right.
 You may assume that there are at most 100 vertical and 100 horizontal walkways, and
 at most 500 seated people in a scenario.
 The scenario corresponding to the example above would be:
-> 9 8
-> 8 0
-> 1 2
-> 2 6
-> 6 6
+> 9 8<br>
+> 8 0<br>
+> 1 2<br>
+> 2 6<br>
+> 6 6<br>
 
 ## Output Format
 For each scenario print (to stdout) a line of the following form:

@@ -14,14 +14,17 @@ public class Distancing{
         sc.close();
         inputHandler(rawIn);
         ArrayList<Point> points = aStarter();
+        int totalDistance = 0;
         int smallestDistance = Integer.MAX_VALUE;
         for(int i=0; i<points.size(); i++){
             int temp = closestPointDistance(points.get(i), people);
+            totalDistance += temp;
             if(temp < smallestDistance){
                 smallestDistance = temp;
             }
         }
-        System.out.println("min " + smallestDistance + ", total " + points.size());
+        // the total distance can't be right, because no matter the path taken, the total distance will always be the same
+        System.out.println("min " + smallestDistance + ", total " + totalDistance);
         visualisation(points);
     }
     // handler for the recursive function
@@ -108,7 +111,7 @@ public class Distancing{
     }
 
     public static void visualisation(ArrayList<Point> points){
-        char[][] grid = new char[gridSize[0] + 1][gridSize[1] + 1];
+        char[][] grid = new char[gridSize[0]+1][gridSize[1]+1];
         for(char[] row : grid){
             Arrays.fill(row, '.');
         }
@@ -121,18 +124,18 @@ public class Distancing{
         
         // Print the grid with x and y axis
         System.out.print("   ");
-        for (int i = 0; i <= gridSize[1]; i++) {
+        for (int i = 0; i <= gridSize[0]; i++) {
             System.out.print(" " + i);
         }
         System.out.println();
         System.out.print("   ");
-        for(int i = 0; i <= gridSize[1]; i++){
+        for(int i = 0; i <= gridSize[0]; i++){
             System.out.print("--");
         }
         System.out.println();
-        for (int i = 0; i <= gridSize[0]; i++) {
-            System.out.print(i + " | ");
-            for (int j = 0; j <= gridSize[1]; j++) {
+        for (int j = 0; j <= gridSize[1]; j++) {
+            System.out.print(j + " | ");
+            for (int i = 0; i <= gridSize[0]; i++) {
             System.out.print(grid[i][j] + " ");
             }
             System.out.println();

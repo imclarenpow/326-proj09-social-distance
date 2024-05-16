@@ -4,6 +4,7 @@ import java.awt.Point;
 public class Distancing {
     private static ArrayList<Point> people = new ArrayList<>(); // arraylist of the points that people are at
     private static int[] gridSize = new int[2]; // size of the grid (also the end point)
+    private static int minnestMinDist = Integer.MAX_VALUE; // the last minimum distance found
 
     public static void main(String[] args) {
         ArrayList<String> rawIn = new ArrayList<>();
@@ -19,7 +20,7 @@ public class Distancing {
                 // Prints out the grid and the people but not the path,
                 // for testing that the grid has been created correctly
                 // testVisualisation();
-
+                
                 points = aStarter();
                 totalDistance = 0;
                 smallestDistance = Integer.MAX_VALUE;
@@ -87,14 +88,16 @@ public class Distancing {
                 return;
             }
             // neighbours will be the points to the right and below the current point
-            Point neighbourX = new Point(curr.position.x + 1, curr.position.y);
+            
             Point neighbourY = new Point(curr.position.x, curr.position.y + 1);
+            Point neighbourX = new Point(curr.position.x + 1, curr.position.y);
             // i think this is right? it uses manhattan distance and then incentivises
             // staying as far away as possible from the closest point
             // however it may have some issues if the closest point is further away than the
             // hueristic
-            int costX = curr.sumOfDistance + heuristic(neighbourX, goal);
+
             int costY = curr.sumOfDistance + heuristic(neighbourY, goal);
+            int costX = curr.sumOfDistance + heuristic(neighbourX, goal);
             if (!costAtPt.containsKey(neighbourY) || costY < costAtPt.get(neighbourY)) {
                 costAtPt.put(neighbourY, costY);
                 costs.add(new State(neighbourY, costY));
@@ -108,19 +111,27 @@ public class Distancing {
         }
     }
     // TODO: Figure out what a sensible heuristic function would be for this problem
+    // something something if the minimum distance is the same as the previous minimum distance its not as bad
     public static int heuristic(Point current, Point goal) {
         // Calculate the distance to the goal
-        int goalDistance = Math.abs(current.x - goal.x) + Math.abs(current.y - goal.y);
-        
-        int minDistanceToPerson = closestPointDistance(current, people);
-        double inverseDistanceToPerson = 1 / (double)minDistanceToPerson;
-        
+        int goalDistance = Math.abs(goal.x - current.x) + Math.abs(goal.y - current.y);
+        int minDist = closestPointDistance(current, people);
         // Combine the two components with some weight (you can adjust this weight)
-        int weightedDistanceToGoal = 25 * goalDistance; // Weight for goal-directed movement
-        double weightedDistanceToPerson = sumOfDistance(current) * inverseDistanceToPerson; // Weight for avoiding people
-        
+        int weightedDistanceToGoal = 5 * goalDistance; // Weight for goal-directed movement
+        double weightedDistanceToClosest = (2 * 1/(closestPointDistance(current, people)+2)); // Weight for avoiding people
+        // don't go through people
+        for(Point p : people){
+            if(p.y == current.y && p.x == current.x){
+                weightedDistanceToClosest += 999;
+                break;
+            }
+        }
+        if(minnestMinDist > minDist){
+            weightedDistanceToClosest += 25*(minnestMinDist-minDist);
+            minnestMinDist = minDist;
+        }
         // Return the combined heuristic value
-        return weightedDistanceToGoal + (int)weightedDistanceToPerson;
+        return weightedDistanceToGoal + (int)weightedDistanceToClosest;
     }
     
     
@@ -128,8 +139,8 @@ public class Distancing {
     public static int sumOfDistance(Point current) {
         int output = 0;
         for (Point p : people) {
-            output += Math.abs(current.getX() - p.getX());
-            output += Math.abs(current.getY() - p.getY());
+            output += Math.abs(p.getX() - current.getX());
+            output += Math.abs(p.getY() - current.getY());
         }
         return output;
     }

@@ -3,6 +3,7 @@ import java.awt.Point;
 public class DistanceRefactor {
     private static ArrayList<Point> people = new ArrayList<>();
     private static int[] gridSize = new int[2];
+    private static HashMap<Point, Integer> closestToPerson = new HashMap<>();
 
     public static void main(String[] args){
         // get input
@@ -27,6 +28,7 @@ public class DistanceRefactor {
             visualisation(path);
             people = new ArrayList<>();
             gridSize = new int[2];
+            closestToPerson = new HashMap<>();
         }
     }
     /** handler for the aStar algorithm (keeps main cleaner) */
@@ -103,6 +105,11 @@ public class DistanceRefactor {
             int distance = Math.abs(current.x - p.x) + Math.abs(current.y - p.y);
             if(distance < closest){
                 closest = distance;
+            }
+            if(!closestToPerson.containsKey(current)){
+                closestToPerson.put(p, distance);
+            }else if(distance < closestToPerson.get(current)){
+                closestToPerson.put(p, distance);
             }
         }
         return closest;

@@ -99,6 +99,7 @@ public class DistanceRefactor {
     /** this method finds the closestPoint
      * @returns the manhattan distance between the handed through point and the closest person
      */
+    // TODO: make it return a hashmap of the closest point because we need to be able to find what the closest point was as well as keep track of each closest point
     public static int closestPointDistance(Point current){
         int closest = Integer.MAX_VALUE;
         for(Point p : people){

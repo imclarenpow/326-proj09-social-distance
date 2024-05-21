@@ -20,14 +20,10 @@ public class DistanceRefactor {
             ArrayList<State> path = aStarter();
             int total = 0;
             int smallestDistance = Integer.MAX_VALUE;
-            for(State s : path){
-                //System.out.println("x: " + s.position.x + ", y: " + s.position.y + ", cost: " + s.cost + ", closest: " + s.closestPt + ", closestEver: " + s.closestEver);
-                if(s.closestEver < smallestDistance){
-                    smallestDistance = s.closestEver;
-                }
-                total += s.closestPt;
+            for(Point p : people){
+                total += calcTotal(path, p);
             }
-            System.out.println("min " + smallestDistance + ", total " + path.size());
+            System.out.println("min " + path.get(path.size()-1).closestEver + ", total " + total);
             visualisation(path);
             people = new ArrayList<>();
             gridSize = new int[2];
@@ -110,6 +106,17 @@ public class DistanceRefactor {
             }
         }
         return closest;
+    }
+
+    public static int calcTotal(ArrayList<State> path, Point person){
+        int output = Integer.MAX_VALUE;
+        for(State s : path){
+            int distance = Math.abs(s.position.x - person.x) + Math.abs(s.position.y - person.y);
+            if(distance < output){
+                output = distance;
+            }
+        }
+        return output;
     }
     /** this method handles standard in, this is to declutter the main method
      * @return the input in a 2D arraylist of all scenarios and their points

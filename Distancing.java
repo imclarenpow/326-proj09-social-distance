@@ -4,7 +4,6 @@ import java.awt.Point;
 public class Distancing {
     private static ArrayList<Point> people = new ArrayList<>(); // arraylist of the points that people are at
     private static int[] gridSize = new int[2]; // size of the grid (also the end point)
-    private static int minnestMinDist = Integer.MAX_VALUE; // the last minimum distance found
 
     public static void main(String[] args) {
         ArrayList<String> rawIn = new ArrayList<>();
@@ -70,10 +69,10 @@ public class Distancing {
 
     // the actual search algorithm
     public static void aStar(Point current, Point goal, ArrayList<Point> path) {
-        PriorityQueue<State> costs = new PriorityQueue<>(Comparator.comparingInt(a -> a.sumOfDistance));
+        PriorityQueue<State> costs = new PriorityQueue<>(Comparator.comparingInt(a -> a.cost));
         Map<Point, Integer> costAtPt = new HashMap<>();
         Map<Point, Point> cameFrom = new HashMap<>();
-        costs.add(new State(current, sumOfDistance(current)));
+        costs.add(new State(current, sumOfDistance(current), closestPointDistance(current, people)));
         costAtPt.put(current, 0);
 
         while (!costs.isEmpty()) {
@@ -96,26 +95,40 @@ public class Distancing {
             // however it may have some issues if the closest point is further away than the
             // hueristic
 
-            int costY = curr.sumOfDistance + heuristic(neighbourY, goal);
-            int costX = curr.sumOfDistance + heuristic(neighbourX, goal);
+            int costY = curr.cost + heuristic(neighbourY, goal, curr.closestEver);
+            int costX = curr.cost + heuristic(neighbourX, goal, curr.closestEver);
             if (!costAtPt.containsKey(neighbourY) || costY < costAtPt.get(neighbourY)) {
                 costAtPt.put(neighbourY, costY);
-                costs.add(new State(neighbourY, costY));
+                int closest = curr.closestEver;
+                if(curr.closestEver > closestPointDistance(neighbourY, people)){
+                    closest += curr.closestEver;
+                    costY += 99;
+                } else {
+                    closest += closestPointDistance(neighbourY, people);
+                }
+                costs.add(new State(neighbourY, costY, closest));
                 cameFrom.put(neighbourY, curr.position);
             }
             if (!costAtPt.containsKey(neighbourX) || costX < costAtPt.get(neighbourX)) {
                 costAtPt.put(neighbourX, costX);
-                costs.add(new State(neighbourX, costX));
+                int closest;
+                if(curr.closestEver > closestPointDistance(neighbourY, people)){
+                    closest = curr.closestEver;
+                    costX += 99;
+                } else {
+                    closest = closestPointDistance(neighbourY, people);
+                }
+                costs.add(new State(neighbourX, costX, closest));
                 cameFrom.put(neighbourX, curr.position);
             }
         }
     }
     // TODO: Figure out what a sensible heuristic function would be for this problem
     // something something if the minimum distance is the same as the previous minimum distance its not as bad
-    public static int heuristic(Point current, Point goal) {
+    public static int heuristic(Point current, Point goal, int closestEver) {
         // Calculate the distance to the goal
         int goalDistance = Math.abs(goal.x - current.x) + Math.abs(goal.y - current.y);
-        int minDist = closestPointDistance(current, people);
+        
         // Combine the two components with some weight (you can adjust this weight)
         int weightedDistanceToGoal = 5 * goalDistance; // Weight for goal-directed movement
         double weightedDistanceToClosest = (2 * 1/(closestPointDistance(current, people)+2)); // Weight for avoiding people
@@ -125,10 +138,6 @@ public class Distancing {
                 weightedDistanceToClosest += 999;
                 break;
             }
-        }
-        if(minnestMinDist > minDist){
-            weightedDistanceToClosest += 25*(minnestMinDist-minDist);
-            minnestMinDist = minDist;
         }
         // Return the combined heuristic value
         return weightedDistanceToGoal + (int)weightedDistanceToClosest;
@@ -233,12 +242,14 @@ public class Distancing {
 
     static class State {
 
+        int closestEver;
         Point position;
-        int sumOfDistance; // adds sum of previous distance also
+        int cost; // adds sum of previous distance also
 
-        public State(Point position, int sumOfDistance) {
+        public State(Point position, int cost, int closestEver) {
             this.position = position;
-            this.sumOfDistance = sumOfDistance;
+            this.cost = cost;
+            this.closestEver = closestEver;
         }
     }
 }

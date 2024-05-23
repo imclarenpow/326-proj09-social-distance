@@ -45,7 +45,7 @@ public class DistanceRefactor {
         Map<Point, Integer> costAtPt = new HashMap<>();
         Map<State, State> cameFrom = new HashMap<>();
         int firstClosePt = closestPointDistance(current);
-        costs.add(new State(current, firstClosePt, 0));
+        costs.add(new State(current, returnDistances(current), 0));
         costAtPt.put(current, 0);
         while(!costs.isEmpty()){
             State curr = costs.poll();
@@ -61,45 +61,41 @@ public class DistanceRefactor {
 
             Point neighbourY = new Point(curr.position.x, curr.position.y+1);
             Point neighbourX = new Point(curr.position.x+1, curr.position.y);
-
-            int costY = curr.cost + heuristic(neighbourY, goal, curr.closestEver);
-            int costX = curr.cost + heuristic(neighbourX, goal, curr.closestEver);
+            int closenessComparatorY = SumOfMap(returnDistances(neighbourY)) - SumOfMap(curr.closestEver);
+            int closenessComparatorX = SumOfMap(returnDistances(neighbourX)) - SumOfMap(curr.closestEver);
+            int costY = curr.cost + heuristic(neighbourY, goal, closenessComparatorY) + (minChanges(neighbourY, curr.closestEver)*9);
+            int costX = curr.cost + heuristic(neighbourX, goal, closenessComparatorX) + (minChanges(neighbourX, curr.closestEver)*9);
 
             if(!costAtPt.containsKey(neighbourY) || costY < costAtPt.get(neighbourY)){
                 costAtPt.put(neighbourY, costY);
-                int cd = closestPointDistance(neighbourY);
-                if(cd > curr.closestEver){ cd = curr.closestEver; }
-                State temp = new State(neighbourY, cd, costY);
+                HashMap<Point, Integer> yClosest = closestEver(neighbourY, curr.closestEver);
+                State temp = new State(neighbourY, yClosest, costY);
                 costs.add(temp);
                 cameFrom.put(temp, curr);
             }
             if(!costAtPt.containsKey(neighbourX) || costX < costAtPt.get(neighbourX)){
                 costAtPt.put(neighbourX, costX);
-                int cd = closestPointDistance(neighbourX);
-                if(cd > curr.closestEver){ cd = curr.closestEver; }
-                State temp = new State(neighbourX, cd, costX);
+                HashMap<Point, Integer> xClosest = closestEver(neighbourX, curr.closestEver);
+                State temp = new State(neighbourX, xClosest, costX);
                 costs.add(temp);
                 cameFrom.put(temp, curr);
             }
         }
     }
 
-    public static int heuristic(Point current, Point goal, int closestEver){
+    public static int heuristic(Point current, Point goal, int closenessComparator){
         int output = 0;
         int manhattan = Math.abs(current.x - goal.x) + Math.abs(current.y - goal.y);
-        int closeWeight = 0;
-        if(closestEver > closestPointDistance(current)){
-            closeWeight = 1/(closestEver - closestPointDistance(current)) * 100;
-        }
+        
+        
         // adjust for wanted weight
-        output = (5 * manhattan) + (1 * closeWeight);
+        output = (5 * manhattan) + (1 * closenessComparator);
         return output;
     }
 
     /** this method finds the closestPoint
      * @returns the manhattan distance between the handed through point and the closest person
      */
-    // TODO: make it return a hashmap of the closest point because we need to be able to find what the closest point was as well as keep track of each closest point
     public static int closestPointDistance(Point current){
         int closest = Integer.MAX_VALUE;
         for(Point p : people){
@@ -122,6 +118,43 @@ public class DistanceRefactor {
             int distance = Math.abs(s.position.x - person.x) + Math.abs(s.position.y - person.y);
             if(distance < output){
                 output = distance;
+            }
+        }
+        return output;
+    }
+    public static int SumOfMap(HashMap<Point, Integer> map){
+        int output = 0;
+        for(int i : map.values()){
+            output += i;
+        }
+        return output;
+    }
+    public static HashMap<Point, Integer> returnDistances(Point current){
+        HashMap<Point, Integer> output = new HashMap<>();
+        for(Point p : people){
+            int distance = Math.abs(current.x - p.x) + Math.abs(current.y - p.y);
+            output.put(p, distance);
+        }
+        return output;
+    }
+    public static int minChanges (Point current, HashMap<Point, Integer> prevDist){
+        int output = 0;
+        for(Point p : prevDist.keySet()){
+            int distance = Math.abs(current.x - p.x) + Math.abs(current.y - p.y);
+            if(distance < prevDist.get(p)){
+                output ++;
+            }
+        }
+        return output;
+    }
+    public static HashMap<Point, Integer> closestEver(Point current, HashMap<Point, Integer> prevDist){
+        HashMap<Point, Integer> output = new HashMap<>();
+        for(Point p : prevDist.keySet()){
+            int distance = Math.abs(current.x - p.x) + Math.abs(current.y - p.y);
+            if(distance < prevDist.get(p)){
+                output.put(p, distance);
+            }else{
+                output.put(p, prevDist.get(p));
             }
         }
         return output;
@@ -174,15 +207,16 @@ public class DistanceRefactor {
     }
 
     static class State {
-        int closestEver;
         int closestPt;
         Point position;
         int cost;
-        public State(Point position, int closestEver, int cost){
-            this.closestEver = closestEver;
+        HashMap<Point, Integer> closestEver = new HashMap<>();
+        public State(Point position, HashMap<Point, Integer> closestEver, int cost){
             this.position = position;
             this.cost = cost;
+            this.closestEver = closestEver;
             this.closestPt = closestPointDistance(position);
+            
         }
     }
 }

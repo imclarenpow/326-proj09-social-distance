@@ -24,7 +24,9 @@ public class DistanceRefactor {
             for(Point p : people){
                 total += calcTotal(path, p);
             }
-            System.out.println("min " + path.get(path.size()-1).closestEver + ", total " + total);
+            int minDistance = Collections.min(path.get(path.size()-1).closestEver.values());
+            System.out.println("min " + minDistance + ", total " + total );
+            //System.out.println("min (" + path.get(path.size()-1).closestEver + "), total (" + total + ")");
             visualisation(path);
             people = new ArrayList<>();
             gridSize = new int[2];

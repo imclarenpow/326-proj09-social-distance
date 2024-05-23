@@ -62,11 +62,14 @@ public class DistanceRefactor {
             }
 
             Point neighbourY = new Point(curr.position.x, curr.position.y+1);
-            Point neighbourX = new Point(curr.position.x+1, curr.position.y);
-            int closenessComparatorY = SumOfMap(returnDistances(neighbourY)) - SumOfMap(curr.closestEver);
-            int closenessComparatorX = SumOfMap(returnDistances(neighbourX)) - SumOfMap(curr.closestEver);
-            int costY = curr.cost + heuristic(neighbourY, goal, closenessComparatorY) + (minChanges(neighbourY, curr.closestEver)*9);
-            int costX = curr.cost + heuristic(neighbourX, goal, closenessComparatorX) + (minChanges(neighbourX, curr.closestEver)*9);
+            Point neighbourX = new Point(curr.position.x+1, curr.position.y); 
+            HashMap<Point, Integer> yMap = returnDistances(neighbourY);  
+            HashMap<Point, Integer> xMap = returnDistances(neighbourX);         
+            int closenessComparatorY = SumOfMap(yMap) - SumOfMap(curr.closestEver);
+            int closenessComparatorX = SumOfMap(xMap) - SumOfMap(curr.closestEver);
+            
+            int costY = curr.cost + heuristic(neighbourY, goal, closenessComparatorY) + (minChanges(neighbourY, curr.closestEver)*9) + weHateZeroes(yMap);
+            int costX = curr.cost + heuristic(neighbourX, goal, closenessComparatorX) + (minChanges(neighbourX, curr.closestEver)*9) + weHateZeroes(xMap);
 
             if(!costAtPt.containsKey(neighbourY) || costY < costAtPt.get(neighbourY)){
                 costAtPt.put(neighbourY, costY);
@@ -114,6 +117,15 @@ public class DistanceRefactor {
         return closest;
     }
 
+    public static int weHateZeroes(HashMap<Point, Integer> map){
+        int output = 0;
+        for(int i : map.values()){
+            if(i == 0){
+                output += 999;
+            }
+        }
+        return output;
+    }
     public static int calcTotal(ArrayList<State> path, Point person){
         int output = Integer.MAX_VALUE;
         for(State s : path){

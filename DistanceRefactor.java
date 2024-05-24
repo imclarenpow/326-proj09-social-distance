@@ -65,11 +65,11 @@ public class DistanceRefactor {
             Point neighbourX = new Point(curr.position.x+1, curr.position.y); 
             HashMap<Point, Integer> yMap = returnDistances(neighbourY);  
             HashMap<Point, Integer> xMap = returnDistances(neighbourX);         
-            int closenessComparatorY = SumOfMap(yMap) - SumOfMap(curr.closestEver);
-            int closenessComparatorX = SumOfMap(xMap) - SumOfMap(curr.closestEver);
+            int closenessComparatorY = SumOfMap(yMap) - SumOfMap(returnDistances(curr.position));
+            int closenessComparatorX = SumOfMap(xMap) - SumOfMap(returnDistances(curr.position));
             
-            int costY = curr.cost + heuristic(neighbourY, goal, closenessComparatorY) + (minChanges(neighbourY, curr.closestEver)*2);
-            int costX = curr.cost + heuristic(neighbourX, goal, closenessComparatorX) + (minChanges(neighbourX, curr.closestEver)*2);
+            int costY = curr.cost + heuristic(neighbourY, goal) + (minChanges(neighbourY, curr.closestEver)*2);
+            int costX = curr.cost + heuristic(neighbourX, goal) + (minChanges(neighbourX, curr.closestEver)*2);
             //System.out.println("Y " + costY + " " + neighbourX.x + " " + neighbourX.y + "\nX " + costX + " " + neighbourY.x + " " + neighbourY.y);
             if(curr.closestPt < closestPointDistance(neighbourY)){
                 costY += (closestPointDistance(neighbourY)-curr.closestPt)*99;
@@ -95,14 +95,8 @@ public class DistanceRefactor {
         }
     }
 
-    public static int heuristic(Point current, Point goal, int closenessComparator){
-        int output = 0;
-        int manhattan = Math.abs(current.x - goal.x) + Math.abs(current.y - goal.y);
-        
-        
-        // adjust for wanted weight
-        output = (2 * manhattan);
-        return output;
+    public static int heuristic(Point current, Point goal){
+        return Math.abs(current.x - goal.x) + Math.abs(current.y - goal.y);
     }
 
     /** this method finds the closestPoint

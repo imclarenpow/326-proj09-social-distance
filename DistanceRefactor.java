@@ -71,7 +71,13 @@ public class DistanceRefactor {
             
             int costY = curr.cost + heuristic(neighbourY, goal, closenessComparatorY) + (minChanges(neighbourY, curr.closestEver)*9) + weHateZeroes(yMap);
             int costX = curr.cost + heuristic(neighbourX, goal, closenessComparatorX) + (minChanges(neighbourX, curr.closestEver)*9) + weHateZeroes(xMap);
-
+            //System.out.println("Cost Y " + costY + " " + neighbourX.x + " " + neighbourX.y + "\nCost X " + costX + " " + neighbourY.x + " " + neighbourY.y);
+            if(curr.closestPt < closestPointDistance(neighbourY)){
+                costY += (curr.closestPt-closestPointDistance(neighbourY))*99;
+            }
+            if(curr.closestPt < closestPointDistance(neighbourX)){
+                costX += (curr.closestPt-closestPointDistance(neighbourX))*99;
+            }
             if(!costAtPt.containsKey(neighbourY) || costY < costAtPt.get(neighbourY)){
                 costAtPt.put(neighbourY, costY);
                 HashMap<Point, Integer> yClosest = closestEver(neighbourY, curr.closestEver);

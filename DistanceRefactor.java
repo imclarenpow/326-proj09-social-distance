@@ -24,9 +24,9 @@ public class DistanceRefactor {
             for(Point p : people){
                 total += calcTotal(path, p);
             }
-            int minDistance = Collections.min(path.get(path.size()-1).closestEver.values());
+            int minDistance = Collections.min(path.get(path.size()-1).closestEver.values()); 
             System.out.println("min " + minDistance + ", total " + total );
-            //System.out.println("min (" + path.get(path.size()-1).closestEver + "), total (" + total + ")");
+            System.out.println(path.get(path.size()-1).closestEver.toString());
             visualisation(path);
             people = new ArrayList<>();
             gridSize = new int[2];
@@ -46,7 +46,6 @@ public class DistanceRefactor {
         PriorityQueue<State> costs = new PriorityQueue<>(Comparator.comparingInt(a -> a.cost));
         Map<Point, Integer> costAtPt = new HashMap<>();
         Map<State, State> cameFrom = new HashMap<>();
-        int firstClosePt = closestPointDistance(current);
         costs.add(new State(current, returnDistances(current), 0));
         costAtPt.put(current, 0);
         while(!costs.isEmpty()){
@@ -69,15 +68,16 @@ public class DistanceRefactor {
             int closenessComparatorY = SumOfMap(yMap) - SumOfMap(curr.closestEver);
             int closenessComparatorX = SumOfMap(xMap) - SumOfMap(curr.closestEver);
             
-            int costY = curr.cost + heuristic(neighbourY, goal, closenessComparatorY) + (minChanges(neighbourY, curr.closestEver)*9) + weHateZeroes(yMap);
-            int costX = curr.cost + heuristic(neighbourX, goal, closenessComparatorX) + (minChanges(neighbourX, curr.closestEver)*9) + weHateZeroes(xMap);
-            //System.out.println("Cost Y " + costY + " " + neighbourX.x + " " + neighbourX.y + "\nCost X " + costX + " " + neighbourY.x + " " + neighbourY.y);
+            int costY = curr.cost + heuristic(neighbourY, goal, closenessComparatorY) + (minChanges(neighbourY, curr.closestEver)*2);
+            int costX = curr.cost + heuristic(neighbourX, goal, closenessComparatorX) + (minChanges(neighbourX, curr.closestEver)*2);
+            //System.out.println("Y " + costY + " " + neighbourX.x + " " + neighbourX.y + "\nX " + costX + " " + neighbourY.x + " " + neighbourY.y);
             if(curr.closestPt < closestPointDistance(neighbourY)){
-                costY += (curr.closestPt-closestPointDistance(neighbourY))*99;
+                costY += (closestPointDistance(neighbourY)-curr.closestPt)*99;
             }
             if(curr.closestPt < closestPointDistance(neighbourX)){
-                costX += (curr.closestPt-closestPointDistance(neighbourX))*99;
+                costX += (closestPointDistance(neighbourX)-curr.closestPt)*99;
             }
+            // below this is fine
             if(!costAtPt.containsKey(neighbourY) || costY < costAtPt.get(neighbourY)){
                 costAtPt.put(neighbourY, costY);
                 HashMap<Point, Integer> yClosest = closestEver(neighbourY, curr.closestEver);
@@ -101,7 +101,7 @@ public class DistanceRefactor {
         
         
         // adjust for wanted weight
-        output = (5 * manhattan) + (1 * closenessComparator);
+        output = (2 * manhattan);
         return output;
     }
 

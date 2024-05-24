@@ -60,7 +60,8 @@ public class DistanceRefactor {
                 Collections.reverse(path);
                 return;
             }
-
+            // add cost if the smallest minimum distance decreases
+            // the issue is that we aren't adding extra cost for a decrease in the smallest minimum distance
             Point neighbourY = new Point(curr.position.x, curr.position.y+1);
             Point neighbourX = new Point(curr.position.x+1, curr.position.y); 
             HashMap<Point, Integer> yMap = returnDistances(neighbourY);  

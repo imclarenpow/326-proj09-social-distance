@@ -25,7 +25,11 @@ public class Distancing {
             }
             int minDistance = Collections.min(path.get(path.size()-1).closestEver.values());
             System.out.println("min " + minDistance + ", total " + total );
-            System.out.println("min (" + path.get(path.size()-1).closestEver + "), total (" + total + ")");
+            // these are debugging prints, remove them when code is working properly
+            //System.out.println("min (" + path.get(path.size()-1).closestEver + "), total (" + total + ")");
+            /*for(State s : path){
+                System.out.println(s.position.x + " " + s.position.y + " - cost: " + s.cost + " closestPt: " + s.closestPt +  " total: " + s.closestEver.values().stream().mapToInt(Integer::intValue).sum());
+            }*/
             visualisation(path);
             people = new ArrayList<>();
             gridSize = new int[2];
@@ -76,22 +80,32 @@ public class Distancing {
             // adding change in closest point distance cost
             if(curr.closestPt > closestPtDist(neighbourX)){ costX += 25; closestX = closestPtDist(neighbourX); }
                 else{ closestX = curr.closestPt; }
-                if(curr.closestPt > closestPtDist(neighbourY)){ costY += 25; closestY = closestPtDist(neighbourY); }
+            if(curr.closestPt > closestPtDist(neighbourY)){ costY += 25; closestY = closestPtDist(neighbourY); }
                 else{ closestY = curr.closestPt; }
             // adding cost of changes to minimum distances
             costX += minChanges(neighbourX, curr.closestEver)*10;
             costY += minChanges(neighbourY, curr.closestEver)*10;
+            HashMap<Point, Integer> xClosestMap = closestEverMap(neighbourX, curr.closestEver);
+            HashMap<Point, Integer> yClosestMap = closestEverMap(neighbourY, curr.closestEver);
+            int prevClosestSum = curr.closestEver.values().stream().mapToInt(Integer::intValue).sum();
+            int xClosestSum = xClosestMap.values().stream().mapToInt(Integer::intValue).sum();
+            int yClosestSum = yClosestMap.values().stream().mapToInt(Integer::intValue).sum();
+            if(xClosestSum < prevClosestSum){ costX += (prevClosestSum - xClosestSum)*75; }
+            if(yClosestSum < prevClosestSum){ costY += (prevClosestSum - yClosestSum)*75; }
+            // TODO: these are debugging prints, remove them when code is working properly
+            /*System.out.println("From: " + curr.position.x + " " + curr.position.y + " cost: " + curr.cost + " closestPt "+ curr.closestPt);
+            System.out.println("\tX " + costX + " " + neighbourX.x + " " + neighbourX.y + " min changes: " + minChanges(neighbourX, curr.closestEver)*10 + " closestPt " + closestPtDist(neighbourX) + " hueristic: " + heuristic(neighbourX, goal) +" Closest Sum: " + xClosestSum +
+                                "\n\tY " + costY + " " + neighbourY.x + " " + neighbourY.y + " min changes: " + minChanges(neighbourY, curr.closestEver)*10 + " closestPt " + closestPtDist(neighbourY) + " hueristic: " + heuristic(neighbourY, goal) + " Closest Sum: " + yClosestSum);
+            */
             // add all the things to state
             if(!costAtPt.containsKey(neighbourY) || costY < costAtPt.get(neighbourY)){
                 costAtPt.put(neighbourY, costY);
-                HashMap<Point, Integer> yClosestMap = closestEverMap(neighbourY, curr.closestEver);
                 State temp = new State(neighbourY, yClosestMap, costY, closestY);
                 costs.add(temp);
                 cameFrom.put(temp, curr);
             }
             if(!costAtPt.containsKey(neighbourX) || costX < costAtPt.get(neighbourX)){
                 costAtPt.put(neighbourX, costX);
-                HashMap<Point, Integer> xClosestMap = closestEverMap(neighbourX, curr.closestEver);
                 State temp = new State(neighbourX, xClosestMap, costX, closestX);
                 costs.add(temp);
                 cameFrom.put(temp, curr);
@@ -139,6 +153,16 @@ public class Distancing {
             int distance = Math.abs(current.x - p.x) + Math.abs(current.y - p.y);
             if(distance < prevDist.get(p)){
                 output ++;
+            }
+        }
+        return output;
+    }
+    public static int sumOfChanges (Point current, HashMap<Point, Integer> prevDist){
+        int output = 0;
+        for(Point p : prevDist.keySet()){
+            int distance = Math.abs(current.x - p.x) + Math.abs(current.y - p.y);
+            if(distance < prevDist.get(p)){
+                output += distance;
             }
         }
         return output;
@@ -198,17 +222,17 @@ public class Distancing {
     }
 
     public static void visualisation(ArrayList<State> points) {
-        char[][] grid = new char[gridSize[0]][gridSize[1]];
-        for(int i = 0; i < gridSize[0]; i++){
-            for(int j = 0; j < gridSize[1]; j++){
+        char[][] grid = new char[gridSize[1]][gridSize[0]];
+        for(int i = 0; i < gridSize[1]; i++){
+            for(int j = 0; j < gridSize[0]; j++){
                 grid[i][j] = '.';
             }
         }
         for(State s : points){
-            grid[s.position.x][s.position.y] = 'X';
+            grid[s.position.y][s.position.x] = 'X';
         }
         for(Point p : people){
-            grid[p.x][p.y] = 'P';
+            grid[p.y][p.x] = 'P';
         }
 
         for(char[] row : grid){
@@ -228,6 +252,7 @@ public class Distancing {
         public State(Point position, HashMap<Point, Integer> closestEver, int cost, int closestPt){
             this.position = position;
             this.cost = cost;
+            this.closestPt = closestPt;
             this.closestEver = closestEver;
         }
     }

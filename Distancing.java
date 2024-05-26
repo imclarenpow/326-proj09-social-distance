@@ -30,7 +30,10 @@ public class Distancing {
             /*for(State s : path){
                 System.out.println(s.position.x + " " + s.position.y + " - cost: " + s.cost + " closestPt: " + s.closestPt +  " total: " + s.closestEver.values().stream().mapToInt(Integer::intValue).sum());
             }*/
-            visualisation(path);
+            // visualisation could be seen as adding to the code? could possibly help with grade
+            if(args.length > 0 && args[0].equals("-v")){
+                visualisation(path);
+            }
             people = new ArrayList<>();
             gridSize = new int[2];
             closestToPerson = new HashMap<>();

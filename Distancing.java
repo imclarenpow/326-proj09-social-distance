@@ -130,7 +130,7 @@ public class Distancing {
         return min;
     }
     /**
-     * this method returns a hashmap of all distances from the point to all the people. only used for the initial state
+     * this method returns a hashmap of all distances from the point to all the people.
      */
     public static HashMap<Point, Integer> returnDistances(Point current){
         HashMap<Point, Integer> distances = new HashMap<>();

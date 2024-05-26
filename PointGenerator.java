@@ -4,9 +4,9 @@ import java.awt.Point;
 public class PointGenerator {
     public static void main(String[] args){
         // input the amount of points you want
-        int amtOfPts = 500; // change to amount of people you want
-        int xMax = 100; // change to xMax of the grid
-        int yMax = 100; // change to yMax of the grid
+        int amtOfPts = 20; // change to amount of people you want
+        int xMax = 30; // change to xMax of the grid
+        int yMax = 30; // change to yMax of the grid
         System.out.println(xMax + " " + yMax);
         ArrayList<Point> points = new ArrayList<Point>();
         for(int i = 0; i < amtOfPts; i++){
@@ -18,7 +18,6 @@ public class PointGenerator {
             } else {
                 i--;
             }
-            
         }
     }
 }

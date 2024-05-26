@@ -253,17 +253,17 @@ public class Distancing {
     }
 
     public static void visualisation(ArrayList<State> points) {
-        char[][] grid = new char[gridSize[1]][gridSize[0]];
-        for (int i = 0; i < gridSize[1]; i++) {
-            for (int j = 0; j < gridSize[0]; j++) {
+        char[][] grid = new char[gridSize[0]][gridSize[1]];
+        for (int i = 0; i < gridSize[0]; i++) {
+            for (int j = 0; j < gridSize[1]; j++) {
                 grid[i][j] = '.';
             }
         }
         for (State s : points) {
-            grid[s.position.y][s.position.x] = 'X';
+            grid[s.position.x][s.position.y] = 'X';
         }
         for (Point p : people) {
-            grid[p.y][p.x] = 'P';
+            grid[p.x][p.y] = 'P';
         }
 
         for (char[] row : grid) {

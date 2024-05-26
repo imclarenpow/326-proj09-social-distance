@@ -94,7 +94,7 @@ public class Distancing {
                 if (neighbor.x < 0 || neighbor.x >= gridSize[0] || neighbor.y < 0 || neighbor.y >= gridSize[1]) {
                     continue;
                 }
-
+                
                 // adding movement to the end goal to the cost
                 int closestDist = Integer.MAX_VALUE;
                 int newCost = curr.cost + heuristic(neighbor, goal);

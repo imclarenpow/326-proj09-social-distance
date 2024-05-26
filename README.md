@@ -11,6 +11,16 @@ In a further (and possibly over the top) fit of conscientiousness, they also wan
 that, subject to meeting the first criterion, the total distance between the path and the
 seated people (i.e., the sum of the minimum distances to each seated person) should be
 as large as possible.
+## Implementation
+Uses a star search algorithm to find the best path<br>
+The aStar() method uses a priority queue to manage the states based on their costs.<br>
+It tracks the costs of reaching each point and maintains a map of points to their respective costs.<br>
+The search explores neighboring points (up, down, left, right) and calculates new costs based on heuristic distances to the goal and proximity to people.<br>
+It updates the cost map and the priority queue with new states if a lower cost path is found.<br>
+When the goal is reached, it reconstructs the path from the starting point to the goal by tracing back through the cameFrom map.<br>
+The path is then reversed to show the correct order from start to goal.<br>
+The Heuristic simply calculates the Manhattan distance between the current point and the goal to estimate the cost to reach the goal.<br>
+
 ## Example
 In the grid below seated people are marked with dots, and a (not necessarily unique)
 best path is drawn in red. This is justified as follows – clearly the upper left sitter and

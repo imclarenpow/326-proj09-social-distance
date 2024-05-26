@@ -4,7 +4,6 @@ import java.awt.Point;
 public class Distancing {
     private static ArrayList<Point> people = new ArrayList<>();
     private static int[] gridSize = new int[2];
-    private static HashMap<Point, Integer> closestToPerson = new HashMap<>();
     public static void main(String[] args){
         // get input
         ArrayList<ArrayList<int[]>> scenarios = stdIn();
@@ -19,7 +18,6 @@ public class Distancing {
             }
             ArrayList<State> path = search();
             int total = 0;
-            int smallestDistance = Integer.MAX_VALUE;
             for(Point p : people){
                 total += calcTotal(path, p);
             }
@@ -36,7 +34,6 @@ public class Distancing {
             }
             people = new ArrayList<>();
             gridSize = new int[2];
-            closestToPerson = new HashMap<>();
         }
     }
     /** 
@@ -73,8 +70,6 @@ public class Distancing {
             // create new points for the neighbours (towards the goal position)
             Point neighbourY = new Point(curr.position.x, curr.position.y+1);
             Point neighbourX = new Point(curr.position.x+1, curr.position.y);
-            HashMap<Point, Integer> yMap = returnDistances(neighbourY);
-            HashMap<Point, Integer> xMap = returnDistances(neighbourX);
             // adding movement to the end goal to the cost
             int closestY = Integer.MAX_VALUE;
             int closestX = Integer.MAX_VALUE;
@@ -135,7 +130,7 @@ public class Distancing {
         return min;
     }
     /**
-     * this method returns a hashmap of all distances from the point to all the people.
+     * this method returns a hashmap of all distances from the point to all the people. only used for the initial state
      */
     public static HashMap<Point, Integer> returnDistances(Point current){
         HashMap<Point, Integer> distances = new HashMap<>();

@@ -4,7 +4,7 @@ import java.awt.Point;
 public class DistanceRework {
     private static ArrayList<Point> people = new ArrayList<>();
     private static int[] gridSize = new int[2];
-
+    /* Notes on storage: HashMap has: point on grid then key[0] = total & key[1] = min */
     public static void main(String[] args) {
         // get input
         ArrayList<ArrayList<int[]>> scenarios = stdIn();
@@ -21,30 +21,33 @@ public class DistanceRework {
                     people.add(new Point(scenario.get(i)[0], scenario.get(i)[1]));
                 }
             }
-            HashMap<Point, State> allStates = allStates();
+            // create hashmap of all points stats (min & total)
+            HashMap<Point, int[]> allStates = allStates();
             for(int i = 0; i < gridSize[0]; i++){
                 for(int j = 0; j < gridSize[1]; j++){
                     Point currentPoint = new Point(i, j);
-                    State state = allStates.get(currentPoint);
+                    int[] state = allStates.get(currentPoint);
                     if (state != null) {
-                        System.out.println(state.position.x + " " + state.position.y + "  total: " + state.total + " min: " + state.min);
+                        System.out.println(i + " " + j + "  total: " + state[0] + " min: " + state[1]);
                     }
                 }
             }
         }
     }
 
-    public static HashMap<Point, State> allStates(){
-        HashMap<Point, State> output = new HashMap<>();
+    /**
+     * iterates through all possible points
+     * @returns hashmap of points and totalDistance and closestPtDist
+     */
+    public static HashMap<Point, int[]> allStates(){
+        HashMap<Point, int[]> output = new HashMap<>();
         for(int i = 0; i < gridSize[0]; i++){
             for(int j = 0; j < gridSize[1]; j++){
                 // can't walk on people
                 if(people.contains(new Point(i, j))){ continue; }
                 // else add
                 Point p = new Point(i, j);
-                output.put(p, new State(p, 
-                    totalDistance(p),
-                    0, closestPtDist(p)));
+                output.put(p, new int[]{totalDistance(p), closestPtDist(p)}); 
             }
         }
         return output;
@@ -97,54 +100,5 @@ public class DistanceRework {
         }
         sc.close();
         return output;
-    }
-
-    public static void visualisation(ArrayList<State> points) {
-        char[][] grid = new char[gridSize[0]][gridSize[1]];
-        for (int i = 0; i < gridSize[0]; i++) {
-            for (int j = 0; j < gridSize[1]; j++) {
-                grid[i][j] = '.';
-            }
-        }
-        for (State s : points) {
-            grid[s.position.x][s.position.y] = 'X';
-        }
-        for (Point p : people) {
-            grid[p.x][p.y] = 'P';
-        }
-
-        for (char[] row : grid) {
-            for (char c : row) {
-                System.out.print(c + " ");
-            }
-            System.out.println();
-        }
-        System.out.println();
-    }
-
-    static class State {
-        int min;
-        Point position;
-        int cost;
-        HashMap<Point, Integer> closestEver = new HashMap<>();
-        int total;
-
-        public State(Point position, int total, int cost, int closestPt) {
-            this.position = position;
-            this.cost = cost;
-            min = closestPt;
-            this.total = total;
-        }
-        @Override
-        public boolean equals(Object o){
-            if(this == o ) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            State state = (State) o;
-            return Objects.equals(position, state.position);
-        }
-        @Override
-        public int hashCode(){
-            return Objects.hash(position);
-        }
     }
 }

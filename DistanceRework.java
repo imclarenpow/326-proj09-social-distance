@@ -40,14 +40,25 @@ public class DistanceRework {
         HashSet<State> output = new HashSet<>();
         for(int i = 0; i < gridSize[0]; i++){
             for(int j = 0; j < gridSize[1]; j++){
-                output.add(new State(new Point(i, j), 
-                    returnDistances(new Point(i, j)),
-                    0, closestPtDist(new Point(i, j))));
+                // can't walk on people
+                if(people.contains(new Point(i, j))){ continue; }
+                // else add
+                Point p = new Point(i, j);
+                output.add(new State(p, 
+                    totalDistance(p),
+                    0, closestPtDist(p)));
             }
         }
         return output;
     }
 
+    public static int totalDistance(Point current){
+        int output = 0;
+        for(Point p : people){
+            output += Math.abs(p.x - current.x) + Math.abs(p.y - current.y);
+        }
+        return output;
+    }
     /**
      * this method returns the minimum distance ever
      */
@@ -60,18 +71,6 @@ public class DistanceRework {
             }
         }
         return min;
-    }
-
-    /**
-     * this method returns a hashmap of all distances from the point to all the
-     * people.
-     */
-    public static HashMap<Point, Integer> returnDistances(Point current) {
-        HashMap<Point, Integer> distances = new HashMap<>();
-        for (Point p : people) {
-            distances.put(p, Math.abs(p.x - current.x) + Math.abs(p.y - current.y));
-        }
-        return distances;
     }
 
     /**
@@ -98,26 +97,6 @@ public class DistanceRework {
             int distance = Math.abs(current.x - p.x) + Math.abs(current.y - p.y);
             if (distance < prevDist.get(p)) {
                 output += distance;
-            }
-        }
-        return output;
-    }
-
-    /**
-     * this method is used to update the closest ever map so that we have a record
-     * of the last closest ever
-     * this is so that we can check if any minimum distances have changed and add
-     * cost accordingly
-     * used in the aStar method to find any changes in the minimum distances
-     */
-    public static HashMap<Point, Integer> closestEverMap(Point current, HashMap<Point, Integer> prevDist) {
-        HashMap<Point, Integer> output = new HashMap<>();
-        for (Point p : prevDist.keySet()) {
-            int distance = Math.abs(current.x - p.x) + Math.abs(current.y - p.y);
-            if (distance < prevDist.get(p)) {
-                output.put(p, distance);
-            } else {
-                output.put(p, prevDist.get(p));
             }
         }
         return output;
@@ -195,12 +174,11 @@ public class DistanceRework {
         HashMap<Point, Integer> closestEver = new HashMap<>();
         int total;
 
-        public State(Point position, HashMap<Point, Integer> closestEver, int cost, int closestPt) {
+        public State(Point position, int total, int cost, int closestPt) {
             this.position = position;
             this.cost = cost;
             this.closestPt = closestPt;
-            this.closestEver = closestEver;
-            this.total = closestEver.values().stream().mapToInt(Integer::intValue).sum();
+            this.total = total;
         }
         @Override
         public boolean equals(Object o){

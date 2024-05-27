@@ -22,7 +22,7 @@ public class DistanceRework {
                 }
             }
             // create hashmap of all points stats (min & total)
-            HashMap<Point, int[]> allStates = allStates();
+            HashMap<Point, Integer> allStates = allStates();
             // this just iterates and returns every point
             /*for(int i = 0; i < gridSize[0]; i++){
                 for(int j = 0; j < gridSize[1]; j++){
@@ -34,26 +34,35 @@ public class DistanceRework {
                 }
             }*/
             
-            int[] startingMins = startingMins(allStates.get(new Point(0,0)), allStates.get(new Point(gridSize[0]-1, gridSize[1]-1)));
-            HashMap<Point, int[]> workingMap = new HashMap<>();
-            outerLoop:
-            for(int min = startingMins[1]; min >= 0; min--){
-                for(int total = startingMins[0]; total >= 0; total--){
-                    workingMap = workingMap(workingMap, allStates, total, min);
-                    if(canFormPath(workingMap)){
-                        System.out.println("min: " + min + " total: " + total);
-                        for(Point p : workingMap.keySet()){
-                            System.out.println(p.x + " " + p.y);
-                        }
-                        break outerLoop;
-                    }
-                }
+            int startingMin = startingMin(allStates.get(new Point(0,0)), allStates.get(new Point(gridSize[0]-1, gridSize[1]-1)));
+            //System.out.println("Starting Iteration: " + startingMin + " First pt min: " + allStates.get(new Point(0,0)) + " Last pt min: " + allStates.get(new Point(gridSize[0]-1, gridSize[1]-1)));
+            //System.out.println("People: " + people.toString());
+            HashMap<Point, Integer> workingMap = new HashMap<>();
             
+            for(int min = startingMin; min > 0; min--){
+                HashMap<Point, Integer> temp = workingMap(workingMap, allStates, min);
+                if(canFormPath(workingMap)){
+                    System.out.println("min: " + min);
+                    for(Point p : temp.keySet()){
+                        System.out.println(p.x + " " + p.y + " min: " + temp.get(p));
+                    }
+                    break;
+                }
+                workingMap = temp;
             }
+            people = new ArrayList<>();
         }
     }
-
-    public static Boolean canFormPath(HashMap<Point, int[]> points) {
+    // TODO: fix it returning false positives: such as this one:
+        /* testing/i1.txt
+         * scenario 4:
+            * returning:
+            * min: 9
+         * instead of min: 4
+            * here are the points that are given to canFormPath to get this result:
+            * 0 0, 0 1, 1 0, 10 10, 10 9, 9 10
+         */
+    public static Boolean canFormPath(HashMap<Point, Integer> points) {
         if (points.isEmpty()) {
             return false;
         }
@@ -85,36 +94,35 @@ public class DistanceRework {
      * iterates through all possible points
      * @returns hashmap of points and totalDistance and closestPtDist
      */
-    public static HashMap<Point, int[]> allStates(){
-        HashMap<Point, int[]> output = new HashMap<>();
+    public static HashMap<Point, Integer> allStates(){
+        HashMap<Point, Integer> output = new HashMap<>();
         for(int i = 0; i < gridSize[0]; i++){
             for(int j = 0; j < gridSize[1]; j++){
                 // can't walk on people
                 if(people.contains(new Point(i, j))){ continue; }
                 // else add
                 Point p = new Point(i, j);
-                output.put(p, new int[]{totalDistance(p), closestPtDist(p)}); 
+                output.put(p, closestPtDist(p)); 
             }
         }
         return output;
     }
 
-    public static HashMap<Point, int[]> workingMap(HashMap<Point, int[]> current, HashMap<Point, int[]> all, int total, int min){
-        HashMap<Point, int[]> output = current;
+    public static HashMap<Point, Integer> workingMap(HashMap<Point, Integer> current, HashMap<Point, Integer> all, int min){
+        HashMap<Point, Integer> output = current;
         for(Point p : all.keySet()){
             if(current.containsKey(p)){ continue; } // skip if already in current
-            int[] temp = all.get(p);
-            if(total <= temp[0] && min <= temp[1]){
-                output.put(p, temp);
+            int tempMin = all.get(p);
+            if(min <= tempMin){
+                output.put(p, tempMin);
             }
         }
         return output;
     }
     // minimum values to start with, this dictates where we start in the pathfinding loops
-    public static int[] startingMins(int[] start, int[] end){
-        int[] output = new int[2];
-        if(start[0] < end[0]){ output[0] = start[0]; } else { output[0] = end[0]; }
-        if(start[1] < end[1]){ output[1] = start[1]; } else { output[1] = end[1]; }
+    public static int startingMin(int start, int end){
+        int output;
+        if(start < end){ output = start; } else { output = end; }
         return output;
     }
 

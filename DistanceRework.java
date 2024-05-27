@@ -21,30 +21,28 @@ public class DistanceRework {
                     people.add(new Point(scenario.get(i)[0], scenario.get(i)[1]));
                 }
             }
-            HashSet<State> allStates = allStates();
+            HashMap<Point, State> allStates = allStates();
             for(int i = 0; i < gridSize[0]; i++){
                 for(int j = 0; j < gridSize[1]; j++){
                     Point currentPoint = new Point(i, j);
-                    for (State state : allStates) {
-                        if (state.position.equals(currentPoint)) {
-                            System.out.println(state.position.x + " " + state.position.y + "  total: " + state.total + " min: " + state.closestPt);
-                            break;
-                        }
+                    State state = allStates.get(currentPoint);
+                    if (state != null) {
+                        System.out.println(state.position.x + " " + state.position.y + "  total: " + state.total + " min: " + state.min);
                     }
                 }
             }
         }
     }
 
-    public static HashSet<State> allStates(){
-        HashSet<State> output = new HashSet<>();
+    public static HashMap<Point, State> allStates(){
+        HashMap<Point, State> output = new HashMap<>();
         for(int i = 0; i < gridSize[0]; i++){
             for(int j = 0; j < gridSize[1]; j++){
                 // can't walk on people
                 if(people.contains(new Point(i, j))){ continue; }
                 // else add
                 Point p = new Point(i, j);
-                output.add(new State(p, 
+                output.put(p, new State(p, 
                     totalDistance(p),
                     0, closestPtDist(p)));
             }
@@ -73,50 +71,7 @@ public class DistanceRework {
         return min;
     }
 
-    /**
-     * this method looks through the current point and previous hashMap and checks
-     * if the minimum distance is breached. this is to add cost if it has.
-     * if its equal to the minimum distance it doesn't care
-     * 
-     * @returns how many minimum distances have been changed
-     */
-    public static int minChanges(Point current, HashMap<Point, Integer> prevDist) {
-        int output = 0;
-        for (Point p : prevDist.keySet()) {
-            int distance = Math.abs(current.x - p.x) + Math.abs(current.y - p.y);
-            if (distance < prevDist.get(p)) {
-                output++;
-            }
-        }
-        return output;
-    }
-
-    public static int sumOfChanges(Point current, HashMap<Point, Integer> prevDist) {
-        int output = 0;
-        for (Point p : prevDist.keySet()) {
-            int distance = Math.abs(current.x - p.x) + Math.abs(current.y - p.y);
-            if (distance < prevDist.get(p)) {
-                output += distance;
-            }
-        }
-        return output;
-    }
-
-    /**
-     * only used in main method to get the total minimum distances, this just looks
-     * at the last state
-     * and adds all the hash values together
-     */
-    public static int calcTotal(ArrayList<State> path, Point person) {
-        int output = Integer.MAX_VALUE;
-        for (State s : path) {
-            int distance = Math.abs(s.position.x - person.x) + Math.abs(s.position.y - person.y);
-            if (distance < output) {
-                output = distance;
-            }
-        }
-        return output;
-    }
+    
 
     /**
      * this method handles standard in, this is to declutter the main method
@@ -168,7 +123,7 @@ public class DistanceRework {
     }
 
     static class State {
-        int closestPt;
+        int min;
         Point position;
         int cost;
         HashMap<Point, Integer> closestEver = new HashMap<>();
@@ -177,7 +132,7 @@ public class DistanceRework {
         public State(Point position, int total, int cost, int closestPt) {
             this.position = position;
             this.cost = cost;
-            this.closestPt = closestPt;
+            min = closestPt;
             this.total = total;
         }
         @Override

@@ -126,16 +126,21 @@ public class DistanceRework {
         return output;
     }
 
-    public static int totalDistance(Point current){
-        int output = 0;
+    public static HashMap<Point, Integer> startingMinToEach(Point start, Point end){
+        HashMap<Point, Integer> output = new HashMap<>();
         for(Point p : people){
-            output += Math.abs(p.x - current.x) + Math.abs(p.y - current.y);
+            int distStart = Math.abs(p.x - start.x) + Math.abs(p.y - start.y);
+            int distEnd = Math.abs(p.x - end.x) + Math.abs(p.y - end.y);
+            if(distStart < distEnd){
+                output.put(p, distStart);
+            } else {
+                output.put(p, distEnd);
+            }
         }
         return output;
     }
-    /**
-     * this method returns the minimum distance ever
-     */
+
+    /** this method returns the closest distance to point ever */
     public static int closestPtDist(Point current) {
         int min = Integer.MAX_VALUE;
         for (Point p : people) {
@@ -146,8 +151,6 @@ public class DistanceRework {
         }
         return min;
     }
-
-    
 
     /**
      * this method handles standard in, this is to declutter the main method

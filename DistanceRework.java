@@ -24,7 +24,7 @@ public class DistanceRework {
             // create hashmap of all points stats (min & total)
             HashMap<Point, int[]> allStates = allStates();
             // this just iterates and returns every point
-            for(int i = 0; i < gridSize[0]; i++){
+            /*for(int i = 0; i < gridSize[0]; i++){
                 for(int j = 0; j < gridSize[1]; j++){
                     Point currentPoint = new Point(i, j);
                     int[] state = allStates.get(currentPoint);
@@ -32,19 +32,55 @@ public class DistanceRework {
                         System.out.println(i + " " + j + "  total: " + state[0] + " min: " + state[1]);
                     }
                 }
-            }
+            }*/
+            
             int[] startingMins = startingMins(allStates.get(new Point(0,0)), allStates.get(new Point(gridSize[0]-1, gridSize[1]-1)));
-            for(int i = startingMins[0]; i >= 0; i--){
-                for(int j = startingMins[1]; j >= 0; j--){
-                    HashMap<Point, int[]> workingMap = workingMap(new HashMap<Point, int[]>(), allStates, i, j);
-                    // insert if(isPossiblePath) here then print:
-                    // System.out.println("min: " + i + " total: " + j);
+            HashMap<Point, int[]> workingMap = new HashMap<>();
+            outerLoop:
+            for(int min = startingMins[1]; min >= 0; min--){
+                for(int total = startingMins[0]; total >= 0; total--){
+                    workingMap = workingMap(workingMap, allStates, total, min);
+                    if(canFormPath(workingMap)){
+                        System.out.println("min: " + min + " total: " + total);
+                        for(Point p : workingMap.keySet()){
+                            System.out.println(p.x + " " + p.y);
+                        }
+                        break outerLoop;
+                    }
                 }
             
             }
         }
     }
 
+    public static Boolean canFormPath(HashMap<Point, int[]> points) {
+        if (points.isEmpty()) {
+            return false;
+        }
+
+        for (Point p : points.keySet()) {
+            boolean hasNeighbour = false;
+
+            Point[] neighbours = {
+                    new Point(p.x, p.y + 1),
+                    new Point(p.x + 1, p.y),
+                    new Point(p.x, p.y - 1),
+                    new Point(p.x - 1, p.y)
+            };
+
+            for (Point neighbour : neighbours) {
+                if (points.containsKey(neighbour)) {
+                    hasNeighbour = true;
+                    break;
+                }
+            }
+
+            if (!hasNeighbour) {
+                return false;
+            }
+        }
+        return true;
+    }
     /**
      * iterates through all possible points
      * @returns hashmap of points and totalDistance and closestPtDist
@@ -62,6 +98,7 @@ public class DistanceRework {
         }
         return output;
     }
+
     public static HashMap<Point, int[]> workingMap(HashMap<Point, int[]> current, HashMap<Point, int[]> all, int total, int min){
         HashMap<Point, int[]> output = current;
         for(Point p : all.keySet()){

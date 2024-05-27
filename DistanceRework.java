@@ -4,7 +4,11 @@ import java.awt.Point;
 public class DistanceRework {
     private static ArrayList<Point> people = new ArrayList<>();
     private static int[] gridSize = new int[2];
-    /* Notes on storage: HashMap has: point on grid then key[0] = total & key[1] = min */
+
+    /*
+     * Notes on storage: HashMap has: point on grid then key[0] = total & key[1] =
+     * min
+     */
     public static void main(String[] args) {
         // get input
         ArrayList<ArrayList<int[]>> scenarios = stdIn();
@@ -24,26 +28,32 @@ public class DistanceRework {
             // create hashmap of all points stats (min & total)
             HashMap<Point, Integer> allStates = allStates();
             // this just iterates and returns every point
-            /*for(int i = 0; i < gridSize[0]; i++){
-                for(int j = 0; j < gridSize[1]; j++){
-                    Point currentPoint = new Point(i, j);
-                    int[] state = allStates.get(currentPoint);
-                    if (state != null) {
-                        System.out.println(i + " " + j + "  total: " + state[0] + " min: " + state[1]);
-                    }
-                }
-            }*/
-            
-            int startingMin = startingMin(allStates.get(new Point(0,0)), allStates.get(new Point(gridSize[0]-1, gridSize[1]-1)));
-            //System.out.println("Starting Iteration: " + startingMin + " First pt min: " + allStates.get(new Point(0,0)) + " Last pt min: " + allStates.get(new Point(gridSize[0]-1, gridSize[1]-1)));
-            //System.out.println("People: " + people.toString());
+            /*
+             * for(int i = 0; i < gridSize[0]; i++){
+             * for(int j = 0; j < gridSize[1]; j++){
+             * Point currentPoint = new Point(i, j);
+             * int[] state = allStates.get(currentPoint);
+             * if (state != null) {
+             * System.out.println(i + " " + j + "  total: " + state[0] + " min: " +
+             * state[1]);
+             * }
+             * }
+             * }
+             */
+
+            int startingMin = startingMin(allStates.get(new Point(0, 0)),
+                    allStates.get(new Point(gridSize[0] - 1, gridSize[1] - 1)));
+            // System.out.println("Starting Iteration: " + startingMin + " First pt min: " +
+            // allStates.get(new Point(0,0)) + " Last pt min: " + allStates.get(new
+            // Point(gridSize[0]-1, gridSize[1]-1)));
+            // System.out.println("People: " + people.toString());
             HashMap<Point, Integer> workingMap = new HashMap<>();
-            
-            for(int min = startingMin; min > 0; min--){
+
+            for (int min = startingMin; min > 0; min--) {
                 HashMap<Point, Integer> temp = workingMap(workingMap, allStates, min);
-                if(canFormPath(workingMap)){
+                if (canFormPath(workingMap)) {
                     System.out.println("min: " + min);
-                    for(Point p : temp.keySet()){
+                    for (Point p : temp.keySet()) {
                         System.out.println(p.x + " " + p.y + " min: " + temp.get(p));
                     }
                     break;
@@ -53,85 +63,104 @@ public class DistanceRework {
             people = new ArrayList<>();
         }
     }
+
     // TODO: fix it returning false positives: such as this one:
-        /* testing/i1.txt
-         * scenario 4:
-            * returning:
-            * min: 9
-         * instead of min: 4
-            * here are the points that are given to canFormPath to get this result:
-            * 0 0, 0 1, 1 0, 10 10, 10 9, 9 10
-         */
+    /*
+     * testing/i1.txt
+     * scenario 4:
+     * returning:
+     * min: 9
+     * instead of min: 4
+     * here are the points that are given to canFormPath to get this result:
+     * 0 0, 0 1, 1 0, 10 10, 10 9, 9 10
+     */
     public static Boolean canFormPath(HashMap<Point, Integer> points) {
         if (points.isEmpty()) {
             return false;
         }
 
-        for (Point p : points.keySet()) {
-            boolean hasNeighbour = false;
+        Point start = points.keySet().iterator().next();
+        Set<Point> visited = new HashSet<>();
+        Queue<Point> queue = new LinkedList<>();
+
+        queue.add(start);
+        visited.add(start);
+
+        while (!queue.isEmpty()) {
+            Point current = queue.poll();
 
             Point[] neighbours = {
-                    new Point(p.x, p.y + 1),
-                    new Point(p.x + 1, p.y),
-                    new Point(p.x, p.y - 1),
-                    new Point(p.x - 1, p.y)
+                    new Point(current.x, current.y + 1),
+                    new Point(current.x + 1, current.y),
+                    new Point(current.x, current.y - 1),
+                    new Point(current.x - 1, current.y)
             };
 
             for (Point neighbour : neighbours) {
-                if (points.containsKey(neighbour)) {
-                    hasNeighbour = true;
-                    break;
+                if (points.containsKey(neighbour) && !visited.contains(neighbour)) {
+                    visited.add(neighbour);
+                    queue.add(neighbour);
                 }
             }
-
-            if (!hasNeighbour) {
-                return false;
-            }
         }
-        return true;
+
+        return visited.size() == points.size();
     }
+
     /**
      * iterates through all possible points
+     * 
      * @returns hashmap of points and totalDistance and closestPtDist
      */
-    public static HashMap<Point, Integer> allStates(){
+    public static HashMap<Point, Integer> allStates() {
         HashMap<Point, Integer> output = new HashMap<>();
-        for(int i = 0; i < gridSize[0]; i++){
-            for(int j = 0; j < gridSize[1]; j++){
+        for (int i = 0; i < gridSize[0]; i++) {
+            for (int j = 0; j < gridSize[1]; j++) {
                 // can't walk on people
-                if(people.contains(new Point(i, j))){ continue; }
+                if (people.contains(new Point(i, j))) {
+                    continue;
+                }
                 // else add
                 Point p = new Point(i, j);
-                output.put(p, closestPtDist(p)); 
+                output.put(p, closestPtDist(p));
             }
         }
         return output;
     }
 
-    public static HashMap<Point, Integer> workingMap(HashMap<Point, Integer> current, HashMap<Point, Integer> all, int min){
+    public static HashMap<Point, Integer> workingMap(HashMap<Point, Integer> current, HashMap<Point, Integer> all,
+            int min) {
         HashMap<Point, Integer> output = current;
-        for(Point p : all.keySet()){
-            if(current.containsKey(p)){ continue; } // skip if already in current
+        for (Point p : all.keySet()) {
+            if (current.containsKey(p)) {
+                continue;
+            } // skip if already in current
             int tempMin = all.get(p);
-            if(min <= tempMin){
+            if (min <= tempMin) {
                 output.put(p, tempMin);
             }
         }
         return output;
     }
-    // minimum values to start with, this dictates where we start in the pathfinding loops
-    public static int startingMin(int start, int end){
+
+    // minimum values to start with, this dictates where we start in the pathfinding
+    // loops
+    public static int startingMin(int start, int end) {
         int output;
-        if(start < end){ output = start; } else { output = end; }
+        if (start < end) {
+            output = start;
+        } else {
+            output = end;
+        }
         return output;
     }
 
-    public static HashMap<Point, Integer> startingMinToEach(Point start, Point end){
+    public static HashMap<Point, Integer> startingMinToEach(Point start, Point end) {
         HashMap<Point, Integer> output = new HashMap<>();
-        for(Point p : people){
+        for (Point p : people) {
             int distStart = Math.abs(p.x - start.x) + Math.abs(p.y - start.y);
             int distEnd = Math.abs(p.x - end.x) + Math.abs(p.y - end.y);
-            if(distStart < distEnd){
+            if (distStart < distEnd) {
                 output.put(p, distStart);
             } else {
                 output.put(p, distEnd);

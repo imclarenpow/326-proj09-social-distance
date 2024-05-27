@@ -23,6 +23,7 @@ public class DistanceRework {
             }
             // create hashmap of all points stats (min & total)
             HashMap<Point, int[]> allStates = allStates();
+            // this just iterates and returns every point
             for(int i = 0; i < gridSize[0]; i++){
                 for(int j = 0; j < gridSize[1]; j++){
                     Point currentPoint = new Point(i, j);
@@ -31,6 +32,15 @@ public class DistanceRework {
                         System.out.println(i + " " + j + "  total: " + state[0] + " min: " + state[1]);
                     }
                 }
+            }
+            int[] startingMins = startingMins(allStates.get(new Point(0,0)), allStates.get(new Point(gridSize[0]-1, gridSize[1]-1)));
+            for(int i = startingMins[0]; i >= 0; i--){
+                for(int j = startingMins[1]; j >= 0; j--){
+                    HashMap<Point, int[]> workingMap = workingMap(new HashMap<Point, int[]>(), allStates, i, j);
+                    // insert if(isPossiblePath) here then print:
+                    // System.out.println("min: " + i + " total: " + j);
+                }
+            
             }
         }
     }
@@ -50,6 +60,24 @@ public class DistanceRework {
                 output.put(p, new int[]{totalDistance(p), closestPtDist(p)}); 
             }
         }
+        return output;
+    }
+    public static HashMap<Point, int[]> workingMap(HashMap<Point, int[]> current, HashMap<Point, int[]> all, int total, int min){
+        HashMap<Point, int[]> output = current;
+        for(Point p : all.keySet()){
+            if(current.containsKey(p)){ continue; } // skip if already in current
+            int[] temp = all.get(p);
+            if(total <= temp[0] && min <= temp[1]){
+                output.put(p, temp);
+            }
+        }
+        return output;
+    }
+    // minimum values to start with, this dictates where we start in the pathfinding loops
+    public static int[] startingMins(int[] start, int[] end){
+        int[] output = new int[2];
+        if(start[0] < end[0]){ output[0] = start[0]; } else { output[0] = end[0]; }
+        if(start[1] < end[1]){ output[1] = start[1]; } else { output[1] = end[1]; }
         return output;
     }
 

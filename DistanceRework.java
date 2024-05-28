@@ -28,36 +28,15 @@ public class DistanceRework {
             }
             // create hashmap of all points stats (min & total)
             HashMap<Point, Integer> allStates = allStates();
-            // this just iterates and returns every point
-            /*
-             * for(int i = 0; i < gridSize[0]; i++){
-             * for(int j = 0; j < gridSize[1]; j++){
-             * Point currentPoint = new Point(i, j);
-             * int[] state = allStates.get(currentPoint);
-             * if (state != null) {
-             * System.out.println(i + " " + j + "  total: " + state[0] + " min: " +
-             * state[1]);
-             * }
-             * }
-             * }
-             */
 
             int startingMin = startingMin(allStates.get(new Point(0, 0)),
                     allStates.get(new Point(gridSize[0] - 1, gridSize[1] - 1)));
-            // System.out.println("Starting Iteration: " + startingMin + " First pt min: " +
-            // allStates.get(new Point(0,0)) + " Last pt min: " + allStates.get(new
-            // Point(gridSize[0]-1, gridSize[1]-1)));
-            // System.out.println("People: " + people.toString());
             HashMap<Point, Integer> workingMap = new HashMap<>();
             int minimumValue = 0;
             for (int min = startingMin; min > 0; min--) {
                 HashMap<Point, Integer> temp = workingMap(workingMap, allStates, min);
                 if (canFormPath(new HashSet<>(temp.keySet()))) {
                     minimumValue = min;
-                    //System.out.print("min: " + min + " ");
-                    //for (Point p : temp.keySet()) {
-                    //    System.out.println(p.x + " " + p.y + " min: " + temp.get(p));
-                    //}
                     break;
                 }
                 workingMap = temp;
@@ -65,7 +44,7 @@ public class DistanceRework {
             // stored as (current point, (person, distance from person))
             HashMap<Point, HashMap<Point, Integer>> allDistances = allDistancesAtPts(workingMap);
             workingMap = new HashMap<>();
-            // TODO: figure out how we can find the largest possible total distance
+            // TODO: figure out how we can find the largest possible total distance - this the second min total finding stage
                 // the issue is that it just tries the first possible ones to remove and returns that path
                 // we need a way of knowing all possible paths and then returning the one with the largest total
             for(int i = minimumValue; i < (gridSize[0]-1)+(gridSize[0]-1); i++){

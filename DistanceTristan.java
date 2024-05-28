@@ -5,16 +5,11 @@ public class DistanceTristan {
     private static HashSet<Point> people = new HashSet<>();
     private static int[] gridSize = new int[2];
 
-    /*
-     * Notes on storage: HashMap has: point on grid then key[0] = total & key[1] =
-     * min
-     */
     public static void main(String[] args) {
         // get input
         ArrayList<ArrayList<int[]>> scenarios = stdIn();
         // loop through each scenario
         for (ArrayList<int[]> scenario : scenarios) {
-            System.out.println();
             // this adds the needed elements to the variables
             for (int i = 0; i < scenario.size(); i++) {
                 // add first element to gridSize
@@ -44,16 +39,13 @@ public class DistanceTristan {
                 workingMap = temp;
             }
 
-            // TODO: This is the new code stuff, just need to fix the speed
-            System.out.println("FilterPointsByDistance");
             List<Point> useablePoints = filterPointsByDistance(minimumValue);
-            System.out.println("FindBestPath");
-            Set<Point> bestPath = findBestPath(useablePoints);;
-            List<Point> bestPathList = new ArrayList<>(bestPath);
-            System.out.println("getTotal");
-            int total = getTotal(bestPathList);
-            System.out.println("min: " + minimumValue + " total: " + total);
-            visualisation(bestPath);
+            Set<Point> bestPath = findBestPath(useablePoints);
+            int total = getTotal(bestPath);
+            System.out.println("min " + minimumValue + ", total " + total);
+            if (args[0].equals("-v")) {
+                visualisation(bestPath);
+            }
             people.clear();
         }
     }
@@ -111,7 +103,7 @@ public class DistanceTristan {
         path.add(current);
 
         if (current.equals(end)) {
-            int total = getTotal(new ArrayList<>(path));
+            int total = getTotal(path);
             pathTotals.put(new HashSet<>(path), total);
         } else {
             Point[] neighbours = {
@@ -135,7 +127,7 @@ public class DistanceTristan {
      * @param path The path to calculate the total distance of
      * @return The total distance of the path
      */
-    public static int getTotal(List<Point> path) {
+    public static int getTotal(Set<Point> path) {
         int total = 0;
         for (Point person : people) {
             int min = Integer.MAX_VALUE;
@@ -183,7 +175,12 @@ public class DistanceTristan {
         return result;
     }
 
-    // checks if path is possible
+    /**
+     * Checks if a path can be formed from the given points
+     * 
+     * @param points The points that can be visited
+     * @return Whether a path can be formed
+     */
     public static Boolean canFormPath(HashSet<Point> points) {
         if (points.isEmpty()) {
             return false;
@@ -202,7 +199,6 @@ public class DistanceTristan {
         while (!queue.isEmpty()) {
             Point current = queue.poll();
 
-            // If the current point is the end point, return true
             if (current.equals(end)) {
                 return true;
             }
@@ -222,13 +218,11 @@ public class DistanceTristan {
             }
         }
 
-        // If the queue is empty and we haven't returned true, there is no path to the
-        // end point
         return false;
     }
 
     /**
-     * iterates through all possible points
+     * Iterates through all possible points
      * 
      * @returns hashmap of points and totalDistance and closestPtDist
      */
@@ -248,6 +242,14 @@ public class DistanceTristan {
         return output;
     }
 
+    /**
+     * Returns a hashmap of all points that are within the minimum
+     * 
+     * @param current the current hashmap of points
+     * @param all     the hashmap of all points
+     * @param min     the minimum distance
+     * @return hashmap of points and totalDistance and closestPtDist
+     */
     public static HashMap<Point, Integer> workingMap(HashMap<Point, Integer> current, HashMap<Point, Integer> all,
             int min) {
         HashMap<Point, Integer> output = current;
@@ -263,19 +265,23 @@ public class DistanceTristan {
         return output;
     }
 
-    // minimum values to start with, this dictates where we start in the pathfinding
-    // loops
+    /**
+     * Returns the starting minimum of the two points
+     * 
+     * @param start the starting point
+     * @param end   the ending point
+     * @return the minimum of the two points
+     */
     public static int startingMin(int start, int end) {
-        int output;
-        if (start < end) {
-            output = start;
-        } else {
-            output = end;
-        }
-        return output;
+        return Math.min(start, end);
     }
 
-    /** this method returns the closest distance to point ever */
+    /**
+     * Returns the closest distance to a person
+     * 
+     * @param current the current point
+     * @return the closest distance to a person
+     */
     public static int closestPtDist(Point current) {
         int min = Integer.MAX_VALUE;
         for (Point p : people) {
@@ -313,6 +319,11 @@ public class DistanceTristan {
         return output;
     }
 
+    /**
+     * Visualises the path
+     * 
+     * @param path the path to visualise
+     */
     public static void visualisation(Set<Point> path) {
         char[][] grid = new char[gridSize[0]][gridSize[1]];
         for (int i = 0; i < gridSize[0]; i++) {

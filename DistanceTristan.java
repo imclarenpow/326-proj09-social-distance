@@ -70,10 +70,11 @@ public class DistanceTristan {
     public static int findBestPath(List<Point> availablePoints) {
         Point start = new Point(0, 0);
         Point end = new Point(gridSize[0] - 1, gridSize[1] - 1);
-        Set<Integer> pathTotals = new HashSet<>();
-
+        //Set<Integer> pathTotals = new HashSet<>();
+        int bestTotal = 0;
+        HashMap<Point, Integer> totalMin = startingMinToEach(start, end);
         // perform a depth-first search to find all possible paths and their totals
-        dfs(start, end, availablePoints, new ArrayList<>(), pathTotals);
+        dfs(start, end, availablePoints, new ArrayList<>(), bestTotal, totalMin);
 
         // find the path with the largest "total" and return it
         /*Set<Point> bestBranch = null;
@@ -84,13 +85,7 @@ public class DistanceTristan {
                 bestBranch = entry.getKey();
             }
         }*/
-        int bestBranch = 0;
-        for(int i : pathTotals){
-            if(i>bestBranch){
-                bestBranch = i;
-            }
-        }
-        return bestBranch;
+        return bestTotal;
     }
 
     /**
@@ -104,13 +99,15 @@ public class DistanceTristan {
      * @param pathTotals      A map to store the total distance of each path
      */
     private static void dfs(Point current, Point end, List<Point> availablePoints, List<Point> path,
-            Set<Integer> pathTotals) {
+            int bestTotal, HashMap<Point, Integer> totalMin) {
         path.add(current);
-
-        if (current.equals(end)) {
-            int total = getTotal(path);
-            pathTotals.add(total);
+        HashMap<Point, Integer> temp = getMap(totalMin, current);
+        if(getTotalOfMin(totalMin)>getTotalOfMin(temp)){
+            path.remove(current);
+        } else if (current.equals(end)) {
+            //System.out.println("Found: " + getTotalOfMin(temp));
         } else {
+            
             Point[] neighbours = {
                     new Point(current.x, current.y + 1),
                     new Point(current.x + 1, current.y),
@@ -120,7 +117,8 @@ public class DistanceTristan {
 
             for (Point neighbour : neighbours) {
                 if (availablePoints.contains(neighbour) && !path.contains(neighbour)) {
-                    dfs(neighbour, end, availablePoints, path, pathTotals);
+                    bestTotal = getTotalOfMin(totalMin);
+                    dfs(neighbour, end, availablePoints, path, bestTotal, temp);
                 }
             }
         }
@@ -148,7 +146,57 @@ public class DistanceTristan {
         }
         return total;
     }
+    public static int getTotalOfMin(HashMap<Point, Integer> minMap){
+        int total = 0;
+        for(Point p : people){
+            total += minMap.get(p);
+        }
+        return total;
+    }
+    public static HashMap<Point, Integer> returnMinTotal(HashMap<Point, Integer> current, HashMap<Point, Integer> next){
+        HashMap<Point, Integer> output = new HashMap<>();
+        for(Point p : current.keySet()){
+            if(next.containsKey(p)){
+                int temp = next.get(p);
+                if(temp < current.get(p)){
+                    output.put(p, temp);
+                } else {
+                    output.put(p, current.get(p));
+                }
+            }
+        }
+        return output;
+    }
 
+    public static HashMap<Point, Integer> startingMinToEach(Point start, Point end) {
+        HashMap<Point, Integer> output = new HashMap<>();
+        for (Point p : people) {
+            int distStart = Math.abs(p.x - start.x) + Math.abs(p.y - start.y);
+            int distEnd = Math.abs(p.x - end.x) + Math.abs(p.y - end.y);
+            if (distStart < distEnd) {
+                output.put(p, distStart);
+            } else {
+                output.put(p, distEnd);
+            }
+        }
+        return output;
+    }
+    public static HashMap<Point, Integer> getMap(HashMap<Point, Integer> currentMins, Point on){
+        HashMap<Point, Integer> currentMap = new HashMap<>();
+            for(Point p : people){
+                int dist = Math.abs(p.x - on.x) + Math.abs(p.y - on.y);
+                currentMap.put(p, dist);
+            }
+        for(Point p : currentMins.keySet()){
+            if(currentMap.containsKey(p)){
+                int temp = currentMap.get(p);
+                if(temp < currentMins.get(p)){
+                    currentMins.put(p, temp);
+                }
+            }
+        }
+        return currentMins;
+    }
     /**
      * Filters the points by distance from the people. If a point on the grid is
      * closer than the best "min" to any person, it is removed from the list of

@@ -97,6 +97,8 @@ public class DistanceRework {
             Point[] neighbors = {
                 new Point(current.x + 1, current.y),
                 new Point(current.x, current.y + 1),
+                new Point(current.x - 1, current.y),
+                new Point(current.x, current.y - 1)
             };
 
             for (Point neighbor : neighbors) {

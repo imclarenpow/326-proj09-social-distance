@@ -40,12 +40,11 @@ public class DistanceTristan {
             }
 
             List<Point> useablePoints = filterPointsByDistance(minimumValue);
-            Set<Point> bestPath = findBestPath(useablePoints);
-            int total = getTotal(bestPath);
+            int total = findBestPath(useablePoints);
             System.out.println("min " + minimumValue + ", total " + total);
-            if (args[0].equals("-v")) {
-                visualisation(bestPath);
-            }
+            //if (args.length!=0 && args[0].equals("-v")) {
+            //    visualisation(bestPath);
+            //}
             people.clear();
         }
     }
@@ -68,21 +67,27 @@ public class DistanceTristan {
      * @param availablePoints The points that can be visited
      * @return The best path from the start point to the end point
      */
-    public static Set<Point> findBestPath(List<Point> availablePoints) {
+    public static int findBestPath(List<Point> availablePoints) {
         Point start = new Point(0, 0);
         Point end = new Point(gridSize[0] - 1, gridSize[1] - 1);
-        Map<Set<Point>, Integer> pathTotals = new HashMap<>();
+        Set<Integer> pathTotals = new HashSet<>();
 
         // perform a depth-first search to find all possible paths and their totals
-        dfs(start, end, availablePoints, new HashSet<>(), pathTotals);
+        dfs(start, end, availablePoints, new ArrayList<>(), pathTotals);
 
         // find the path with the largest "total" and return it
-        Set<Point> bestBranch = null;
+        /*Set<Point> bestBranch = null;
         int maxTotal = Integer.MIN_VALUE;
         for (Map.Entry<Set<Point>, Integer> entry : pathTotals.entrySet()) {
             if (entry.getValue() > maxTotal) {
                 maxTotal = entry.getValue();
                 bestBranch = entry.getKey();
+            }
+        }*/
+        int bestBranch = 0;
+        for(int i : pathTotals){
+            if(i>bestBranch){
+                bestBranch = i;
             }
         }
         return bestBranch;
@@ -98,17 +103,19 @@ public class DistanceTristan {
      * @param path            The current path
      * @param pathTotals      A map to store the total distance of each path
      */
-    private static void dfs(Point current, Point end, List<Point> availablePoints, Set<Point> path,
-            Map<Set<Point>, Integer> pathTotals) {
+    private static void dfs(Point current, Point end, List<Point> availablePoints, List<Point> path,
+            Set<Integer> pathTotals) {
         path.add(current);
 
         if (current.equals(end)) {
             int total = getTotal(path);
-            pathTotals.put(new HashSet<>(path), total);
+            pathTotals.add(total);
         } else {
             Point[] neighbours = {
                     new Point(current.x, current.y + 1),
-                    new Point(current.x + 1, current.y)
+                    new Point(current.x + 1, current.y),
+                    new Point(current.x, current.y - 1),
+                    new Point(current.x - 1, current.y)
             };
 
             for (Point neighbour : neighbours) {
@@ -127,7 +134,7 @@ public class DistanceTristan {
      * @param path The path to calculate the total distance of
      * @return The total distance of the path
      */
-    public static int getTotal(Set<Point> path) {
+    public static int getTotal(List<Point> path) {
         int total = 0;
         for (Point person : people) {
             int min = Integer.MAX_VALUE;

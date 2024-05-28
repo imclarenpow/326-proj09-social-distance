@@ -5,6 +5,8 @@ public class DistanceRework {
     private static HashSet<Point> people = new HashSet<>();
     private static int[] gridSize = new int[2];
 
+    private static List<HashMap<Point, Integer>> allMinDistances = new ArrayList<>();
+    private static List<List<Point>> allPaths = new ArrayList<>();
     /*
      * Notes on storage: HashMap has: point on grid then key[0] = total & key[1] =
      * min
@@ -43,37 +45,69 @@ public class DistanceRework {
             }
             // stored as (current point, (person, distance from person))
             HashMap<Point, HashMap<Point, Integer>> allDistances = allDistancesAtPts(workingMap);
-            workingMap = new HashMap<>();
-            // TODO: figure out how we can find the largest possible total distance - this the second min total finding stage
-                // the issue is that it just tries the first possible ones to remove and returns that path
-                // we need a way of knowing all possible paths and then returning the one with the largest total
-            for(int i = minimumValue; i < (gridSize[0]-1)+(gridSize[0]-1); i++){
-                HashMap<Point, HashMap<Point, Integer>> removableVals = new HashMap<>();
-                //System.out.println("checking for dists of: " + i);
-                for(Point p : allDistances.keySet()){
-                    if(allDistances.get(p).containsValue(i)){
-                        //System.out.println("value of @: " + p.x + " " + p.y);
-                        removableVals.put(p, allDistances.get(p));
-                    }
-                }
-                for(Point p : removableVals.keySet()){
-                    HashMap<Point, Integer> temp = allDistances.get(p);
-                    allDistances.remove(p);
-                    //System.out.println("removing: " + p.x + " " + p.y);
-                    if(!canFormPath(new HashSet<>(allDistances.keySet()))){
-                        //System.out.println("couldn't form without.");
-                        allDistances.put(p, temp);
-                    }
+            List<HashMap<Point, Integer>> allMins = findAllPaths(allDistances, new Point(0, 0), new Point(gridSize[0] - 1, gridSize[1] - 1));
+            int total = 0;
+            int pathNum = -1;
+            for(int i = 0; i < allMins.size(); i++){
+                HashMap<Point, Integer> path = allMins.get(i);
+                int temp = path.values().stream().mapToInt(Integer::intValue).sum();
+                if(temp > total){
+                    total = temp;
+                    pathNum = i;
                 }
             }
-            HashSet<Point> path = new HashSet<>(allDistances.keySet());
-            if (args.length > 0 && args[0].equals("-v")) {
-                visualisation(path);
-            }
-            int total = getTotalDistance(allDistances);
+            HashSet<Point> path = new HashSet<>(allPaths.get(pathNum));
+            visualisation(path);
             System.out.println("min: " + minimumValue + " total: " + total);
+            System.out.println(allMins.get(pathNum).toString());
             people = new HashSet<>();
+            allMinDistances = new ArrayList<>();
+            allPaths = new ArrayList<>();
         }
+    }
+    public static void setVariables(List<HashMap<Point, Integer>> allMin, List<List<Point>> allPath){
+        allMinDistances = allMin;
+        allPaths = allPath;
+    }
+    public static List<HashMap<Point, Integer>> findAllPaths(HashMap<Point, HashMap<Point, Integer>> allDistances, Point start, Point end) {
+        List<List<Point>> allPths = new ArrayList<>();
+        List<Point> currentPath = new ArrayList<>();
+        Set<Point> visited = new HashSet<>();
+        HashMap<Point, Integer> totalMin = startingMinToEach(start, end);
+        List<HashMap<Point, Integer>> minDists = new ArrayList<>();
+        dfs(allDistances, start, end, visited, currentPath, allPths, totalMin, minDists);
+        setVariables(minDists, allPths);
+        return allMinDistances;
+    }
+
+    private static void dfs(HashMap<Point, HashMap<Point, Integer>> allDistances, Point current, Point end,
+                            Set<Point> visited, List<Point> currentPath, List<List<Point>> allPaths, HashMap<Point, Integer> totalMin, List<HashMap<Point, Integer>> allMinDistances) {
+        // Add current point to the path and mark as visited
+        currentPath.add(current);
+        visited.add(current);
+
+        // If we've reached the end point, add the current path to the list of all paths
+        if (current.equals(end)) {
+            allMinDistances.add(totalMin);
+            allPaths.add(new ArrayList<>(currentPath));
+        } else {
+            // Explore neighbors (right and down)
+            Point[] neighbors = {
+                new Point(current.x + 1, current.y),
+                new Point(current.x, current.y + 1)
+            };
+
+            for (Point neighbor : neighbors) {
+                if (allDistances.containsKey(neighbor) && !visited.contains(neighbor)){
+                    totalMin = returnMinTotal(totalMin, allDistances.get(neighbor));
+                    dfs(allDistances, neighbor, end, visited, currentPath, allPaths, totalMin, allMinDistances);
+                }
+            }
+        }
+
+        // Backtrack: remove the current point from the path and mark it as unvisited
+        currentPath.remove(currentPath.size() - 1);
+        visited.remove(current);
     }
 
     // checks if path is possible
@@ -133,6 +167,20 @@ public class DistanceRework {
         }
         for (int value : temp.values()) {
             output += value;
+        }
+        return output;
+    }
+    public static HashMap<Point, Integer> returnMinTotal(HashMap<Point, Integer> current, HashMap<Point, Integer> next){
+        HashMap<Point, Integer> output = new HashMap<>();
+        for(Point p : current.keySet()){
+            if(next.containsKey(p)){
+                int temp = next.get(p);
+                if(temp < current.get(p)){
+                    output.put(p, temp);
+                } else {
+                    output.put(p, current.get(p));
+                }
+            }
         }
         return output;
     }

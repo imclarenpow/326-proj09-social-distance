@@ -65,10 +65,12 @@ public class DistanceRework {
             allPaths = new ArrayList<>();
         }
     }
+    // set variables for the path and distance
     public static void setVariables(List<HashMap<Point, Integer>> allMin, List<List<Point>> allPath){
         allMinDistances = allMin;
         allPaths = allPath;
     }
+
     public static List<HashMap<Point, Integer>> findAllPaths(HashMap<Point, HashMap<Point, Integer>> allDistances, Point start, Point end) {
         List<List<Point>> allPths = new ArrayList<>();
         List<Point> currentPath = new ArrayList<>();
@@ -94,7 +96,7 @@ public class DistanceRework {
             // Explore neighbors (right and down)
             Point[] neighbors = {
                 new Point(current.x + 1, current.y),
-                new Point(current.x, current.y + 1)
+                new Point(current.x, current.y + 1),
             };
 
             for (Point neighbor : neighbors) {
@@ -110,6 +112,7 @@ public class DistanceRework {
         visited.remove(current);
     }
 
+    /* below this, code is fine */
     // checks if path is possible
     public static Boolean canFormPath(HashSet<Point> points) {
         if (points.isEmpty()) {
@@ -300,7 +303,7 @@ public class DistanceRework {
         sc.close();
         return output;
     }
-
+    /* this visualises the graph */
     public static void visualisation(HashSet<Point> path) {
         char[][] grid = new char[gridSize[0]][gridSize[1]];
         for (int i = 0; i < gridSize[0]; i++) {

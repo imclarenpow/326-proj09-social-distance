@@ -45,9 +45,12 @@ public class DistanceTristan {
             }
 
             // TODO: This is the new code stuff, just need to fix the speed
+            System.out.println("FilterPointsByDistance");
             List<Point> useablePoints = filterPointsByDistance(minimumValue);
-            Set<Point> bestPath = findBestPath(useablePoints);
+            System.out.println("FindBestPath");
+            Set<Point> bestPath = findBestPath(useablePoints);;
             List<Point> bestPathList = new ArrayList<>(bestPath);
+            System.out.println("getTotal");
             int total = getTotal(bestPathList);
             System.out.println("min: " + minimumValue + " total: " + total);
             visualisation(bestPath);
@@ -113,9 +116,7 @@ public class DistanceTristan {
         } else {
             Point[] neighbours = {
                     new Point(current.x, current.y + 1),
-                    new Point(current.x + 1, current.y),
-                    new Point(current.x, current.y - 1),
-                    new Point(current.x - 1, current.y)
+                    new Point(current.x + 1, current.y)
             };
 
             for (Point neighbour : neighbours) {

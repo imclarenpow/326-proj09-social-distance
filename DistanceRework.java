@@ -66,6 +66,8 @@ public class DistanceRework {
             HashMap<Point, HashMap<Point, Integer>> allDistances = allDistancesAtPts(workingMap);
             workingMap = new HashMap<>();
             // TODO: figure out how we can find the largest possible total distance
+                // the issue is that it just tries the first possible ones to remove and returns that path
+                // we need a way of knowing all possible paths and then returning the one with the largest total
             for(int i = minimumValue; i < (gridSize[0]-1)+(gridSize[0]-1); i++){
                 HashMap<Point, HashMap<Point, Integer>> removableVals = new HashMap<>();
                 //System.out.println("checking for dists of: " + i);

@@ -108,6 +108,7 @@ public class DistanceTristan {
         path.add(current);
         if(getTotal(path)<bestTotal(pathTotals)){
             path.remove(current);
+            return;
         }
         if (current.equals(end)) {
             int total = getTotal(path);
@@ -156,7 +157,7 @@ public class DistanceTristan {
             }
             total += min;
         }
-        System.out.println("got total: " + total);
+        //System.out.println("got total: " + total);
         return total;
     }
 

@@ -1,0 +1,23 @@
+private static void visualisation(Set<Point> path) {
+        char[][] grid = new char[gridSize[0]][gridSize[1]];
+        for (int i = 0; i < gridSize[0]; i++) {
+            for (int j = 0; j < gridSize[1]; j++) {
+                grid[i][j] = '.';
+            }
+        }
+
+        for (Point p : people) {
+            grid[p.x][p.y] = 'P';
+        }
+        for (Point s : path) {
+            grid[s.x][s.y] = 'X';
+        }
+
+        for (char[] row : grid) {
+            for (char c : row) {
+                System.out.print(c + " ");
+            }
+            System.out.println();
+        }
+        System.out.println();
+    }

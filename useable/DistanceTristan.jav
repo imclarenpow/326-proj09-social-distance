@@ -4,7 +4,7 @@ import java.awt.Point;
 public class DistanceTristan {
     private static HashSet<Point> people = new HashSet<>();
     private static int[] gridSize = new int[2];
-
+    private static HashMap<Point, Integer> closestToPerson = new HashMap<>();
     public static void main(String[] args) {
         // get input
         ArrayList<ArrayList<int[]>> scenarios = stdIn();
@@ -38,9 +38,14 @@ public class DistanceTristan {
                 }
                 workingMap = temp;
             }
-
+            int total;
             List<Point> useablePoints = filterPointsByDistance(minimumValue);
-            int total = findBestPath(useablePoints);
+            if(gridSize[0]*gridSize[1]<100 && people.size()<10){
+                total = findBestPath(useablePoints);
+            }else{
+                total = getTotal(aStarter());
+            }
+            
             System.out.println("min " + minimumValue + ", total " + total);
             //if (args.length!=0 && args[0].equals("-v")) {
             //    visualisation(bestPath);
@@ -71,7 +76,6 @@ public class DistanceTristan {
         Point start = new Point(0, 0);
         Point end = new Point(gridSize[0] - 1, gridSize[1] - 1);
         Set<Integer> pathTotals = new HashSet<>();
-        // TODO: this is the line that uses a star, if you want to remove the a star code this is the only line you need to remove
         pathTotals.add(getTotal(aStarter()));
 
         // perform a depth-first search to find all possible paths and their totals
@@ -370,27 +374,30 @@ public class DistanceTristan {
     }
 
     /* the following code has been taken from the a star implementation previously and aims to prune out some of the unnecessary paths when dfs'ing */
-    // handler for the recursive function
-    public static List<Point> aStarter() {
-        List<Point> path = new ArrayList<>();
-        Point goal = new Point(gridSize[1] - 1, gridSize[0] - 1);
+    /** handler for the aStar algorithm (keeps main cleaner) */
+    public static ArrayList<Point> aStarter() {
+        ArrayList<State> path = new ArrayList<>();
+        Point goal = new Point(gridSize[0] - 1, gridSize[1] - 1);
         Point current = new Point(0, 0);
         aStar(current, goal, path);
-        return path;
+        ArrayList<Point> output = new ArrayList<>();
+        for(State s : path){
+            output.add(s.position);
+        }
+        return output;
     }
 
-    // the actual search algorithm
-    public static void aStar(Point current, Point goal, List<Point> path) {
+    /** aStar search algorithm implementation */
+    public static void aStar(Point current, Point goal, ArrayList<State> path) {
         PriorityQueue<State> costs = new PriorityQueue<>(Comparator.comparingInt(a -> a.cost));
         Map<Point, Integer> costAtPt = new HashMap<>();
-        Map<Point, Point> cameFrom = new HashMap<>();
-        costs.add(new State(current, sumOfDistance(current), closestPointDistance(current, people)));
+        Map<State, State> cameFrom = new HashMap<>();
+        costs.add(new State(current, returnDistances(current), 0));
         costAtPt.put(current, 0);
-
         while (!costs.isEmpty()) {
-            State curr = costs.poll(); // state with the lowest cost (best path)
+            State curr = costs.poll();
             if (curr.position.equals(goal)) {
-                Point temp = curr.position;
+                State temp = curr;
                 while (temp != null) {
                     path.add(temp);
                     temp = cameFrom.get(temp);
@@ -398,108 +405,140 @@ public class DistanceTristan {
                 Collections.reverse(path);
                 return;
             }
-            // neighbours will be the points to the right and below the current point
-            
+            // add cost if the smallest minimum distance decreases
+            // the issue is that we aren't adding extra cost for a decrease in the smallest
+            // minimum distance
             Point neighbourY = new Point(curr.position.x, curr.position.y + 1);
             Point neighbourX = new Point(curr.position.x + 1, curr.position.y);
-            // i think this is right? it uses manhattan distance and then incentivises
-            // staying as far away as possible from the closest point
-            // however it may have some issues if the closest point is further away than the
-            // hueristic
 
-            int costY = curr.cost + heuristic(neighbourY, goal, curr.closestEver);
-            int costX = curr.cost + heuristic(neighbourX, goal, curr.closestEver);
+            int costY = curr.cost + heuristic(neighbourY, goal) + (minChanges(neighbourY, curr.closestEver) * 2);
+            int costX = curr.cost + heuristic(neighbourX, goal) + (minChanges(neighbourX, curr.closestEver) * 2);
+            // System.out.println("Y " + costY + " " + neighbourX.x + " " + neighbourX.y +
+            // "\nX " + costX + " " + neighbourY.x + " " + neighbourY.y);
+            if (curr.closestPt < closestPointDistance(neighbourY)) {
+                costY += (closestPointDistance(neighbourY) - curr.closestPt) * 99;
+            }
+            if (curr.closestPt < closestPointDistance(neighbourX)) {
+                costX += (closestPointDistance(neighbourX) - curr.closestPt) * 99;
+            }
+            // below this is fine
             if (!costAtPt.containsKey(neighbourY) || costY < costAtPt.get(neighbourY)) {
                 costAtPt.put(neighbourY, costY);
-                int closest = curr.closestEver;
-                if(curr.closestEver > closestPointDistance(neighbourY, people)){
-                    closest += curr.closestEver;
-                    costY += 99;
-                } else {
-                    closest += closestPointDistance(neighbourY, people);
-                }
-                costs.add(new State(neighbourY, costY, closest));
-                cameFrom.put(neighbourY, curr.position);
+                HashMap<Point, Integer> yClosest = closestEver(neighbourY, curr.closestEver);
+                State temp = new State(neighbourY, yClosest, costY);
+                costs.add(temp);
+                cameFrom.put(temp, curr);
             }
             if (!costAtPt.containsKey(neighbourX) || costX < costAtPt.get(neighbourX)) {
                 costAtPt.put(neighbourX, costX);
-                int closest;
-                if(curr.closestEver > closestPointDistance(neighbourY, people)){
-                    closest = curr.closestEver;
-                    costX += 99;
-                } else {
-                    closest = closestPointDistance(neighbourY, people);
-                }
-                costs.add(new State(neighbourX, costX, closest));
-                cameFrom.put(neighbourX, curr.position);
+                HashMap<Point, Integer> xClosest = closestEver(neighbourX, curr.closestEver);
+                State temp = new State(neighbourX, xClosest, costX);
+                costs.add(temp);
+                cameFrom.put(temp, curr);
             }
         }
     }
-    // TODO: Figure out what a sensible heuristic function would be for this problem
-    // something something if the minimum distance is the same as the previous minimum distance its not as bad
-    public static int heuristic(Point current, Point goal, int closestEver) {
-        // Calculate the distance to the goal
-        int goalDistance = Math.abs(goal.x - current.x) + Math.abs(goal.y - current.y);
-        
-        // Combine the two components with some weight (you can adjust this weight)
-        int weightedDistanceToGoal = 5 * goalDistance; // Weight for goal-directed movement
-        double weightedDistanceToClosest = (2 * 1/(closestPointDistance(current, people)+2)); // Weight for avoiding people
-        // don't go through people
-        for(Point p : people){
-            if(p.y == current.y && p.x == current.x){
-                weightedDistanceToClosest += 999;
-                break;
-            }
-        }
-        // Return the combined heuristic value
-        return weightedDistanceToGoal + (int)weightedDistanceToClosest;
-    }
-    
-    
 
-    public static int sumOfDistance(Point current) {
-        int output = 0;
+    public static int heuristic(Point current, Point goal) {
+        return Math.abs(current.x - goal.x) + Math.abs(current.y - goal.y);
+    }
+
+    /**
+     * this method finds the closestPoint
+     * 
+     * @returns the manhattan distance between the handed through point and the
+     *          closest person
+     */
+    public static int closestPointDistance(Point current) {
+        int closest = Integer.MAX_VALUE;
         for (Point p : people) {
-            output += Math.abs(p.getX() - current.getX());
-            output += Math.abs(p.getY() - current.getY());
+            int distance = Math.abs(current.x - p.x) + Math.abs(current.y - p.y);
+            if (distance < closest) {
+                closest = distance;
+            }
+            if (!closestToPerson.containsKey(current)) {
+                closestToPerson.put(p, distance);
+            } else if (distance < closestToPerson.get(current)) {
+                closestToPerson.put(p, distance);
+            }
+        }
+        return closest;
+    }
+
+    public static int weHateZeroes(HashMap<Point, Integer> map) {
+        int output = 0;
+        for (int i : map.values()) {
+            if (i == 0) {
+                output += 999;
+            }
         }
         return output;
     }
 
-    // handle input - doesn't do error handling, just adds input to the correct
-    // variables
-    public static void inputHandler(ArrayList<String> input) {
-        gridSize = new int[] { Integer.parseInt(input.get(0).split(" ")[0]),
-                Integer.parseInt(input.get(0).split(" ")[1]) };
-        for (int i = 1; i < input.size(); i++) {
-            String line = input.get(i);
-            String[] split = line.split(" ");
-            if (Character.isDigit(split[0].trim().charAt(0)) && Character.isDigit(split[1].trim().charAt(0))) {
-                people.add(new Point(Integer.parseInt(split[1]), Integer.parseInt(split[0])));
+    public static int calcTotal(ArrayList<State> path, Point person) {
+        int output = Integer.MAX_VALUE;
+        for (State s : path) {
+            int distance = Math.abs(s.position.x - person.x) + Math.abs(s.position.y - person.y);
+            if (distance < output) {
+                output = distance;
             }
         }
+        return output;
     }
 
-    public static int closestPointDistance(Point current, HashSet<Point> points) {
-        int min = Integer.MAX_VALUE;
-        for (Point p : points) {
+    public static int SumOfMap(HashMap<Point, Integer> map) {
+        int output = 0;
+        for (int i : map.values()) {
+            output += i;
+        }
+        return output;
+    }
+
+    public static HashMap<Point, Integer> returnDistances(Point current) {
+        HashMap<Point, Integer> output = new HashMap<>();
+        for (Point p : people) {
             int distance = Math.abs(current.x - p.x) + Math.abs(current.y - p.y);
-            if (distance < min) {
-                min = distance;
+            output.put(p, distance);
+        }
+        return output;
+    }
+
+    public static int minChanges(Point current, HashMap<Point, Integer> prevDist) {
+        int output = 0;
+        for (Point p : prevDist.keySet()) {
+            int distance = Math.abs(current.x - p.x) + Math.abs(current.y - p.y);
+            if (distance < prevDist.get(p)) {
+                output++;
             }
         }
-        return min;
+        return output;
     }
+
+    public static HashMap<Point, Integer> closestEver(Point current, HashMap<Point, Integer> prevDist) {
+        HashMap<Point, Integer> output = new HashMap<>();
+        for (Point p : prevDist.keySet()) {
+            int distance = Math.abs(current.x - p.x) + Math.abs(current.y - p.y);
+            if (distance < prevDist.get(p)) {
+                output.put(p, distance);
+            } else {
+                output.put(p, prevDist.get(p));
+            }
+        }
+        return output;
+    }
+
     static class State {
-
-        int closestEver;
+        int closestPt;
         Point position;
-        int cost; // adds sum of previous distance also
+        int cost;
+        HashMap<Point, Integer> closestEver = new HashMap<>();
 
-        public State(Point position, int cost, int closestEver) {
+        public State(Point position, HashMap<Point, Integer> closestEver, int cost) {
             this.position = position;
             this.cost = cost;
             this.closestEver = closestEver;
+            this.closestPt = closestPointDistance(position);
+
         }
     }
 }

@@ -2,224 +2,339 @@ import java.util.*;
 import java.awt.Point;
 
 public class Distancing {
-    private static Set<Point> people = new HashSet<>();
+    private static HashSet<Point> people = new HashSet<>();
     private static int[] gridSize = new int[2];
-
+    private static HashMap<Point, Integer> closestToPerson = new HashMap<>();
     public static void main(String[] args) {
-        // Get input
-        List<List<int[]>> scenarios = stdIn();
+        // get input
+        ArrayList<ArrayList<int[]>> scenarios = stdIn();
+        // loop through each scenario
+        for (ArrayList<int[]> scenario : scenarios) {
+            // this adds the needed elements to the variables
+            for (int i = 0; i < scenario.size(); i++) {
+                // add first element to gridSize
+                if (i == 0) {
+                    gridSize = scenario.get(i);
+                }
+                // add all other elements to people
+                else {
+                    people.add(new Point(scenario.get(i)[0], scenario.get(i)[1]));
+                }
+            }
+            // create hashmap of all points (that aren't people) and their closest distance
+            // to a person
+            HashMap<Point, Integer> allStates = allStates();
 
-        // Process each scenario
-        for (List<int[]> scenario : scenarios) {
-            processScenario(scenario);
-        }
-    }
-    /**
-     * Processes a scenario by initializing the variables, 
-     * creating a map of all points and their closest distances to a person, 
-     * finding the minimum value for which a path can be formed, and calculating the total using the best path.
-     * @param scenario
-     */
-    private static void processScenario(List<int[]> scenario) {
-        // Initialize variables for the scenario
-        initializeScenario(scenario); 
-        // Create a map of all points and their closest distances to a person
-        Map<Point, Integer> allStates = allStates();
-        int startingMin = getStartingMin(allStates.get(new Point(0, 0)), allStates.get(new Point(gridSize[0] - 1, gridSize[1] - 1))); 
-        // Find the minimum value for which a path can be formed
-        int minimumValue = findMinimumValue(startingMin, allStates); 
-        // Calculate the total using the best path
-        int total = calculateTotal(minimumValue); 
-        // Output the results
-        System.out.println("min " + minimumValue + ", total " + total);
-        people.clear();
-    }
-    /** 
-     * Initializes the scenario by setting the grid size and adding people to the set.
-     */
-    private static void initializeScenario(List<int[]> scenario) {
-        for (int i = 0; i < scenario.size(); i++) {
-            if (i == 0) {
-                gridSize = scenario.get(i);
-            } else {
-                people.add(new Point(scenario.get(i)[0], scenario.get(i)[1]));
+            int startingMin = startingMin(allStates.get(new Point(0, 0)),
+                    allStates.get(new Point(gridSize[0] - 1, gridSize[1] - 1)));
+
+            HashMap<Point, Integer> workingMap = new HashMap<>();
+            int minimumValue = 0;
+            for (int min = startingMin; min > 0; min--) {
+                HashMap<Point, Integer> temp = workingMap(workingMap, allStates, min);
+                if (canFormPath(new HashSet<>(temp.keySet()))) {
+                    minimumValue = min;
+                    break;
+                }
+                workingMap = temp;
             }
-        }
-    }
-    /**
-     * Method that finds the minimum value for which a path can be formed.
-     */
-    private static int findMinimumValue(int startingMin, Map<Point, Integer> allStates) {
-        Map<Point, Integer> workingMap = new HashMap<>();
-        for (int min = startingMin; min > 0; min--) {
-            Map<Point, Integer> temp = updateWorkingMap(workingMap, allStates, min);
-            if (canFormPath(new HashSet<>(temp.keySet()))) {
-                return min;
+            int total;
+            List<Point> useablePoints = filterPointsByDistance(minimumValue);
+            if(gridSize[0]*gridSize[1]<100 && people.size()<10){
+                total = findBestPath(useablePoints);
+            }else{
+                total = getTotal(aStarter());
             }
-            workingMap = temp;
+            
+            System.out.println("min " + minimumValue + ", total " + total);
+            //if (args.length!=0 && args[0].equals("-v")) {
+            //    visualisation(bestPath);
+            //}
+            people.clear();
         }
-        return 0;
     }
+
     /**
-     * Method that calculates the total using the best path.
-     * @param minimumValue
-     * @returns the total
+     * Calculates the Manhattan distance between two points
+     * 
+     * @param p1 The first point
+     * @param p2 The second point
+     * @return The Manhattan distance between the two points
      */
-    private static int calculateTotal(int minimumValue) {
-        List<Point> usablePoints = filterPointsByDistance(minimumValue);
-        if (gridSize[0] * gridSize[1] < 100 && people.size() < 10) {
-            return findBestPath(usablePoints);
-        } else {
-            return getTotal(aStarter());
-        }
+    public static int ManhattanDistance(Point p1, Point p2) {
+        return Math.abs(p1.x - p2.x) + Math.abs(p1.y - p2.y);
     }
-    /** returns manhattan distance between the two @param Point */
-    private static int ManhattanDistance(Point p1, Point p2) {
-        return Math.abs(p1.x - p2.x) + Math.abs(p2.y - p1.y);
-    }
-    /** finds the best path out of the points available using dfs (this is if the grid size is smaller than 100) */
-    private static int findBestPath(List<Point> availablePoints) {
+
+    /**
+     * Finds the best path from the start point to the end point using only the
+     * available points
+     * 
+     * @param availablePoints The points that can be visited
+     * @return The best path from the start point to the end point
+     */
+    public static int findBestPath(List<Point> availablePoints) {
         Point start = new Point(0, 0);
         Point end = new Point(gridSize[0] - 1, gridSize[1] - 1);
         Set<Integer> pathTotals = new HashSet<>();
         pathTotals.add(getTotal(aStarter()));
 
+        // perform a depth-first search to find all possible paths and their totals
         dfs(start, end, availablePoints, new ArrayList<>(), pathTotals);
 
-        return pathTotals.stream().max(Integer::compareTo).orElse(0);
+        // find the path with the largest "total" and return it
+        /*Set<Point> bestBranch = null;
+        int maxTotal = Integer.MIN_VALUE;
+        for (Map.Entry<Set<Point>, Integer> entry : pathTotals.entrySet()) {
+            if (entry.getValue() > maxTotal) {
+                maxTotal = entry.getValue();
+                bestBranch = entry.getKey();
+            }
+        }*/
+        int bestBranch = 0;
+        for(int i : pathTotals){
+            if(i>bestBranch){
+                bestBranch = i;
+            }
+        }
+        return bestBranch;
     }
-    /** dfs implementation */
-    private static void dfs(Point current, Point end, List<Point> availablePoints, List<Point> path, Set<Integer> pathTotals) {
+
+    /**
+     * Performs a depth-first search to find all possible paths from the current
+     * point to the end point
+     * 
+     * @param current         The current point
+     * @param end             The end point
+     * @param availablePoints The points that can be visited
+     * @param path            The current path
+     * @param pathTotals      A map to store the total distance of each path
+     */
+    private static void dfs(Point current, Point end, List<Point> availablePoints, List<Point> path,
+            Set<Integer> pathTotals) {
         path.add(current);
-        // skips over paths that aren't as good as the best we've found so far
-        if (getTotal(path) <= bestTotal(pathTotals)) {
+        if(getTotal(path)<=bestTotal(pathTotals)){
             path.remove(current);
             return;
         }
         if (current.equals(end)) {
-            pathTotals.add(getTotal(path));
+            int total = getTotal(path);
+            pathTotals.add(total);
         } else {
-            for (Point neighbor : getNeighbors(current)) {
-                if (availablePoints.contains(neighbor) && !path.contains(neighbor)) {
-                    dfs(neighbor, end, availablePoints, path, pathTotals);
+            Point[] neighbours = {
+                    new Point(current.x, current.y + 1),
+                    new Point(current.x + 1, current.y),
+                    new Point(current.x, current.y - 1),
+                    new Point(current.x - 1, current.y)
+            };
+
+            for (Point neighbour : neighbours) {
+                if (availablePoints.contains(neighbour) && !path.contains(neighbour)) {
+                    dfs(neighbour, end, availablePoints, path, pathTotals);
                 }
             }
         }
+
         path.remove(current);
     }
-    /** gets neighbours of a specified point */
-    private static Point[] getNeighbors(Point current) {
-        return new Point[]{
-                new Point(current.x, current.y + 1),
-                new Point(current.x + 1, current.y),
-                new Point(current.x, current.y - 1),
-                new Point(current.x - 1, current.y)
-        };
+    public static int bestTotal(Set<Integer> pathTotals){
+        int best = 0;
+        for(int i : pathTotals){
+            if(i>best){
+                best = i;
+            }
+        }
+        return best;
     }
-    /** simple streaming sum method, here to make the code look less messy */
-    private static int bestTotal(Set<Integer> pathTotals) {
-        return pathTotals.stream().max(Integer::compareTo).orElse(0);
-    }
-    /** @returns the total min sum from the given @param path */
-    private static int getTotal(List<Point> path) {
+    /**
+     * Calculates the total distance of a path
+     * 
+     * @param path The path to calculate the total distance of
+     * @return The total distance of the path
+     */
+    public static int getTotal(List<Point> path) {
         int total = 0;
         for (Point person : people) {
-            int min = path.stream()
-                    .mapToInt(point -> ManhattanDistance(person, point))
-                    .min()
-                    .orElse(Integer.MAX_VALUE);
+            int min = Integer.MAX_VALUE;
+            for (Point point : path) {
+                int temp = ManhattanDistance(person, point);
+                if (temp < min) {
+                    min = temp;
+                }
+            }
             total += min;
         }
+        //System.out.println("got total: " + total);
         return total;
     }
-    /** filters all points by distance */
-    private static List<Point> filterPointsByDistance(int minValue) {
+
+    /**
+     * Filters the points by distance from the people. If a point on the grid is
+     * closer than the best "min" to any person, it is removed from the list of
+     * available points.
+     * 
+     * @param minValue The minimum distance a point must be from all people
+     * @return The list of points that are far enough away from all people
+     */
+    public static List<Point> filterPointsByDistance(int minValue) {
+        int maxX = gridSize[0] - 1;
+        int maxY = gridSize[1] - 1;
+
         List<Point> result = new ArrayList<>();
-        for (int x = 0; x < gridSize[0]; x++) {
-            for (int y = 0; y < gridSize[1]; y++) {
+
+        for (int x = 0; x <= maxX; x++) {
+            for (int y = 0; y <= maxY; y++) {
                 Point currentPoint = new Point(x, y);
-                if (people.stream().allMatch(person -> ManhattanDistance(currentPoint, person) >= minValue)) {
+                boolean isFarEnough = true;
+                for (Point person : people) {
+                    if (ManhattanDistance(currentPoint, person) < minValue) {
+                        isFarEnough = false;
+                        break;
+                    }
+                }
+                if (isFarEnough) {
                     result.add(currentPoint);
                 }
             }
         }
+
         return result;
     }
-    /** this checks if a path can be formed when searching for largest possible minimum value */
-    private static boolean canFormPath(Set<Point> points) {
-        if (points.isEmpty() || !points.contains(new Point(0, 0))) {
+
+    /**
+     * Checks if a path can be formed from the given points
+     * 
+     * @param points The points that can be visited
+     * @return Whether a path can be formed
+     */
+    public static Boolean canFormPath(HashSet<Point> points) {
+        if (points.isEmpty()) {
+            return false;
+        }
+        if (!points.contains(new Point(0, 0))) {
             return false;
         }
         Point start = new Point(0, 0);
         Point end = new Point(gridSize[0] - 1, gridSize[1] - 1);
         Set<Point> visited = new HashSet<>();
         Queue<Point> queue = new LinkedList<>();
+
         queue.add(start);
         visited.add(start);
 
         while (!queue.isEmpty()) {
             Point current = queue.poll();
+
             if (current.equals(end)) {
                 return true;
             }
-            for (Point neighbor : getNeighbors(current)) {
-                if (points.contains(neighbor) && visited.add(neighbor)) {
-                    queue.add(neighbor);
+
+            Point[] neighbours = {
+                    new Point(current.x, current.y + 1),
+                    new Point(current.x + 1, current.y),
+                    new Point(current.x, current.y - 1),
+                    new Point(current.x - 1, current.y)
+            };
+
+            for (Point neighbour : neighbours) {
+                if (points.contains(neighbour) && !visited.contains(neighbour)) {
+                    visited.add(neighbour);
+                    queue.add(neighbour);
                 }
             }
         }
+
         return false;
     }
-    /** returns all distances */
-    private static Map<Point, Integer> allStates() {
-        Map<Point, Integer> output = new HashMap<>();
+
+    /**
+     * Iterates through all possible points
+     * 
+     * @returns hashmap of points and totalDistance and closestPtDist
+     */
+    public static HashMap<Point, Integer> allStates() {
+        HashMap<Point, Integer> output = new HashMap<>();
         for (int i = 0; i < gridSize[0]; i++) {
             for (int j = 0; j < gridSize[1]; j++) {
-                Point p = new Point(i, j);
-                if (!people.contains(p)) {
-                    output.put(p, closestPtDist(p));
+                // can't walk on people
+                if (people.contains(new Point(i, j))) {
+                    continue;
                 }
+                // else add
+                Point p = new Point(i, j);
+                output.put(p, closestPtDist(p));
             }
         }
         return output;
     }
-    /** method that updates the working map */
-    private static Map<Point, Integer> updateWorkingMap(Map<Point, Integer> current, Map<Point, Integer> all, int min) {
-        Map<Point, Integer> output = new HashMap<>(current);
-        for (Map.Entry<Point, Integer> entry : all.entrySet()) {
-            Point p = entry.getKey();
-            int tempMin = entry.getValue();
-            if (!current.containsKey(p) && min <= tempMin) {
+
+    /**
+     * Returns a hashmap of all points that are within the minimum
+     * 
+     * @param current the current hashmap of points
+     * @param all     the hashmap of all points
+     * @param min     the minimum distance
+     * @return hashmap of points and totalDistance and closestPtDist
+     */
+    public static HashMap<Point, Integer> workingMap(HashMap<Point, Integer> current, HashMap<Point, Integer> all,
+            int min) {
+        HashMap<Point, Integer> output = current;
+        for (Point p : all.keySet()) {
+            if (current.containsKey(p)) {
+                continue;
+            } // skip if already in current
+            int tempMin = all.get(p);
+            if (min <= tempMin) {
                 output.put(p, tempMin);
             }
         }
         return output;
     }
-    /** simple method that returns the smallest number out of two */
-    private static int getStartingMin(int start, int end) {
+
+    /**
+     * Returns the starting minimum of the two points
+     * 
+     * @param start the starting point
+     * @param end   the ending point
+     * @return the minimum of the two points
+     */
+    public static int startingMin(int start, int end) {
         return Math.min(start, end);
     }
-    /** returns the closest minimum distance at that point */
-    private static int closestPtDist(Point current) {
-        return people.stream()
-                .mapToInt(p -> ManhattanDistance(p, current))
-                .min()
-                .orElse(Integer.MAX_VALUE);
-    }
-    /** this is the stdIn() which processes the input */
-    private static List<List<int[]>> stdIn() {
-        List<String> rawIn = new ArrayList<>();
-        List<List<int[]>> output = new ArrayList<>();
-        output.add(new ArrayList<>());
 
+    /**
+     * Returns the closest distance to a person
+     * 
+     * @param current the current point
+     * @return the closest distance to a person
+     */
+    public static int closestPtDist(Point current) {
+        int min = Integer.MAX_VALUE;
+        for (Point p : people) {
+            int dist = Math.abs(p.x - current.x) + Math.abs(p.y - current.y);
+            if (dist < min) {
+                min = dist;
+            }
+        }
+        return min;
+    }
+
+    /**
+     * this method handles standard in, this is to declutter the main method
+     * 
+     * @return the input in a 2D arraylist of all scenarios and their points
+     */
+    public static ArrayList<ArrayList<int[]>> stdIn() {
+
+        ArrayList<String> rawIn = new ArrayList<>();
+        ArrayList<ArrayList<int[]>> output = new ArrayList<>();
+        output.add(new ArrayList<int[]>());
         Scanner sc = new Scanner(System.in);
         while (sc.hasNextLine()) {
             rawIn.add(sc.nextLine());
         }
-
         for (String s : rawIn) {
             if (s.trim().isEmpty()) {
-                output.add(new ArrayList<>());
+                output.add(new ArrayList<int[]>());
             } else {
                 output.get(output.size() - 1).add(Arrays.stream(s.trim().split("\\s+"))
                         .mapToInt(Integer::parseInt).toArray());
@@ -228,63 +343,202 @@ public class Distancing {
         sc.close();
         return output;
     }
-    /** this is the aStar algorithm starter, it handles setting it up. */
-    private static List<Point> aStarter() {
-        List<State> path = new ArrayList<>();
+
+    /**
+     * Visualises the path
+     * 
+     * @param path the path to visualise
+     */
+    public static void visualisation(Set<Point> path) {
+        char[][] grid = new char[gridSize[0]][gridSize[1]];
+        for (int i = 0; i < gridSize[0]; i++) {
+            for (int j = 0; j < gridSize[1]; j++) {
+                grid[i][j] = '.';
+            }
+        }
+
+        for (Point p : people) {
+            grid[p.x][p.y] = 'P';
+        }
+        for (Point s : path) {
+            grid[s.x][s.y] = 'X';
+        }
+
+        for (char[] row : grid) {
+            for (char c : row) {
+                System.out.print(c + " ");
+            }
+            System.out.println();
+        }
+        System.out.println();
+    }
+
+    /* the following code has been taken from the a star implementation previously and aims to prune out some of the unnecessary paths when dfs'ing */
+    /** handler for the aStar algorithm (keeps main cleaner) */
+    public static ArrayList<Point> aStarter() {
+        ArrayList<State> path = new ArrayList<>();
         Point goal = new Point(gridSize[0] - 1, gridSize[1] - 1);
         Point current = new Point(0, 0);
         aStar(current, goal, path);
-
-        List<Point> output = new ArrayList<>();
-        for (State s : path) {
+        ArrayList<Point> output = new ArrayList<>();
+        for(State s : path){
             output.add(s.position);
         }
         return output;
     }
-    /** a star search algorithm, used for larger gridSizes to save on time, less accurate but far faster than dfs for bigger problems. */
-    private static void aStar(Point current, Point goal, List<State> path) {
-        PriorityQueue<State> costs = new PriorityQueue<>(Comparator.comparingInt(a -> a.cost + a.distance));
-        Map<Point, Integer> mapCosts = new HashMap<>();
 
-        costs.add(new State(current, 0, ManhattanDistance(current, goal)));
-        mapCosts.put(current, 0);
-
+    /** aStar search algorithm implementation */
+    public static void aStar(Point current, Point goal, ArrayList<State> path) {
+        PriorityQueue<State> costs = new PriorityQueue<>(Comparator.comparingInt(a -> a.cost));
+        Map<Point, Integer> costAtPt = new HashMap<>();
+        Map<State, State> cameFrom = new HashMap<>();
+        costs.add(new State(current, returnDistances(current), 0));
+        costAtPt.put(current, 0);
         while (!costs.isEmpty()) {
-            State s = costs.poll();
-            if (s.position.equals(goal)) {
-                path.add(s);
-                while (s.previous != null) {
-                    path.add(0, s.previous);
-                    s = s.previous;
+            State curr = costs.poll();
+            if (curr.position.equals(goal)) {
+                State temp = curr;
+                while (temp != null) {
+                    path.add(temp);
+                    temp = cameFrom.get(temp);
                 }
+                Collections.reverse(path);
                 return;
             }
+            // add cost if the smallest minimum distance decreases
+            // the issue is that we aren't adding extra cost for a decrease in the smallest
+            // minimum distance
+            Point neighbourY = new Point(curr.position.x, curr.position.y + 1);
+            Point neighbourX = new Point(curr.position.x + 1, curr.position.y);
 
-            for (Point neighbor : getNeighbors(s.position)) {
-                int tempCost = s.cost + 1;
-                if (!mapCosts.containsKey(neighbor) || tempCost < mapCosts.get(neighbor)) {
-                    mapCosts.put(neighbor, tempCost);
-                    costs.add(new State(neighbor, tempCost, ManhattanDistance(neighbor, goal), s));
-                }
+            int costY = curr.cost + heuristic(neighbourY, goal) + (minChanges(neighbourY, curr.closestEver) * 2);
+            int costX = curr.cost + heuristic(neighbourX, goal) + (minChanges(neighbourX, curr.closestEver) * 2);
+            // System.out.println("Y " + costY + " " + neighbourX.x + " " + neighbourX.y +
+            // "\nX " + costX + " " + neighbourY.x + " " + neighbourY.y);
+            if (curr.closestPt < closestPointDistance(neighbourY)) {
+                costY += (closestPointDistance(neighbourY) - curr.closestPt) * 99;
+            }
+            if (curr.closestPt < closestPointDistance(neighbourX)) {
+                costX += (closestPointDistance(neighbourX) - curr.closestPt) * 99;
+            }
+            // below this is fine
+            if (!costAtPt.containsKey(neighbourY) || costY < costAtPt.get(neighbourY)) {
+                costAtPt.put(neighbourY, costY);
+                HashMap<Point, Integer> yClosest = closestEver(neighbourY, curr.closestEver);
+                State temp = new State(neighbourY, yClosest, costY);
+                costs.add(temp);
+                cameFrom.put(temp, curr);
+            }
+            if (!costAtPt.containsKey(neighbourX) || costX < costAtPt.get(neighbourX)) {
+                costAtPt.put(neighbourX, costX);
+                HashMap<Point, Integer> xClosest = closestEver(neighbourX, curr.closestEver);
+                State temp = new State(neighbourX, xClosest, costX);
+                costs.add(temp);
+                cameFrom.put(temp, curr);
             }
         }
     }
-    /** state object used by the a star search algorithm */
-    private static class State {
-        private final Point position;
-        private final int cost;
-        private final int distance;
-        private final State previous;
 
-        public State(Point position, int cost, int distance, State previous) {
+    public static int heuristic(Point current, Point goal) {
+        return Math.abs(current.x - goal.x) + Math.abs(current.y - goal.y);
+    }
+
+    /**
+     * this method finds the closestPoint
+     * 
+     * @returns the manhattan distance between the handed through point and the
+     *          closest person
+     */
+    public static int closestPointDistance(Point current) {
+        int closest = Integer.MAX_VALUE;
+        for (Point p : people) {
+            int distance = Math.abs(current.x - p.x) + Math.abs(current.y - p.y);
+            if (distance < closest) {
+                closest = distance;
+            }
+            if (!closestToPerson.containsKey(current)) {
+                closestToPerson.put(p, distance);
+            } else if (distance < closestToPerson.get(current)) {
+                closestToPerson.put(p, distance);
+            }
+        }
+        return closest;
+    }
+
+    public static int weHateZeroes(HashMap<Point, Integer> map) {
+        int output = 0;
+        for (int i : map.values()) {
+            if (i == 0) {
+                output += 999;
+            }
+        }
+        return output;
+    }
+
+    public static int calcTotal(ArrayList<State> path, Point person) {
+        int output = Integer.MAX_VALUE;
+        for (State s : path) {
+            int distance = Math.abs(s.position.x - person.x) + Math.abs(s.position.y - person.y);
+            if (distance < output) {
+                output = distance;
+            }
+        }
+        return output;
+    }
+
+    public static int SumOfMap(HashMap<Point, Integer> map) {
+        int output = 0;
+        for (int i : map.values()) {
+            output += i;
+        }
+        return output;
+    }
+
+    public static HashMap<Point, Integer> returnDistances(Point current) {
+        HashMap<Point, Integer> output = new HashMap<>();
+        for (Point p : people) {
+            int distance = Math.abs(current.x - p.x) + Math.abs(current.y - p.y);
+            output.put(p, distance);
+        }
+        return output;
+    }
+
+    public static int minChanges(Point current, HashMap<Point, Integer> prevDist) {
+        int output = 0;
+        for (Point p : prevDist.keySet()) {
+            int distance = Math.abs(current.x - p.x) + Math.abs(current.y - p.y);
+            if (distance < prevDist.get(p)) {
+                output++;
+            }
+        }
+        return output;
+    }
+
+    public static HashMap<Point, Integer> closestEver(Point current, HashMap<Point, Integer> prevDist) {
+        HashMap<Point, Integer> output = new HashMap<>();
+        for (Point p : prevDist.keySet()) {
+            int distance = Math.abs(current.x - p.x) + Math.abs(current.y - p.y);
+            if (distance < prevDist.get(p)) {
+                output.put(p, distance);
+            } else {
+                output.put(p, prevDist.get(p));
+            }
+        }
+        return output;
+    }
+
+    static class State {
+        int closestPt;
+        Point position;
+        int cost;
+        HashMap<Point, Integer> closestEver = new HashMap<>();
+
+        public State(Point position, HashMap<Point, Integer> closestEver, int cost) {
             this.position = position;
             this.cost = cost;
-            this.distance = distance;
-            this.previous = previous;
-        }
+            this.closestEver = closestEver;
+            this.closestPt = closestPointDistance(position);
 
-        public State(Point position, int cost, int distance) {
-            this(position, cost, distance, null);
         }
     }
 }

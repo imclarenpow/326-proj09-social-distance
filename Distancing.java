@@ -6,8 +6,9 @@ public class Distancing {
     private static int[] gridSize = new int[2];
     private static HashMap<Point, Integer> closestToPerson = new HashMap<>();
     private static long startTime;
-    private static long maxDuration = 5000;
+    private static long maxDuration = 1000;
     private static boolean overTime = false;
+
     public static void main(String[] args) {
         // get input
         ArrayList<ArrayList<int[]>> scenarios = stdIn();
@@ -46,13 +47,13 @@ public class Distancing {
             total = findBestPath(useablePoints);
             if (overTime) {
                 System.out.print("over time - ");
-                total = getTotal(aStarter());
+                total = getTotal(aStarter(useablePoints));
             }
-        
+
             System.out.println("min " + minimumValue + ", total " + total);
-            //if (args.length!=0 && args[0].equals("-v")) {
-            //    visualisation(bestPath);
-            //}
+            // if (args.length != 0 && args[0].equals("-v")) {
+            // visualisation(bestPath);
+            // }
             people.clear();
             overTime = false;
         }
@@ -80,17 +81,15 @@ public class Distancing {
         Point start = new Point(0, 0);
         Point end = new Point(gridSize[0] - 1, gridSize[1] - 1);
         Set<Integer> pathTotals = new HashSet<>();
-        pathTotals.add(getTotal(aStarter()));
+        pathTotals.add(getTotal(aStarter(availablePoints)));
 
         startTime = System.currentTimeMillis();
         // perform a depth-first search to find all possible paths and their totals
         dfs(start, end, availablePoints, new ArrayList<>(), pathTotals);
 
-
-
         int bestBranch = 0;
-        for(int i : pathTotals){
-            if(i>bestBranch){
+        for (int i : pathTotals) {
+            if (i > bestBranch) {
                 bestBranch = i;
             }
         }
@@ -117,7 +116,7 @@ public class Distancing {
         if (overTime) {
             return;
         }
-        if(getTotal(path)<=bestTotal(pathTotals)){
+        if (getTotal(path) <= bestTotal(pathTotals)) {
             path.remove(current);
             return;
         }
@@ -141,15 +140,17 @@ public class Distancing {
 
         path.remove(current);
     }
-    public static int bestTotal(Set<Integer> pathTotals){
+
+    public static int bestTotal(Set<Integer> pathTotals) {
         int best = 0;
-        for(int i : pathTotals){
-            if(i>best){
+        for (int i : pathTotals) {
+            if (i > best) {
                 best = i;
             }
         }
         return best;
     }
+
     /**
      * Calculates the total distance of a path
      * 
@@ -168,7 +169,7 @@ public class Distancing {
             }
             total += min;
         }
-        //System.out.println("got total: " + total);
+        // System.out.println("got total: " + total);
         return total;
     }
 
@@ -378,22 +379,25 @@ public class Distancing {
         System.out.println();
     }
 
-    /* the following code has been taken from the a star implementation previously and aims to prune out some of the unnecessary paths when dfs'ing */
+    /*
+     * the following code has been taken from the a star implementation previously
+     * and aims to prune out some of the unnecessary paths when dfs'ing
+     */
     /** handler for the aStar algorithm (keeps main cleaner) */
-    public static ArrayList<Point> aStarter() {
+    public static ArrayList<Point> aStarter(List<Point> validPoints) {
         ArrayList<State> path = new ArrayList<>();
         Point goal = new Point(gridSize[0] - 1, gridSize[1] - 1);
         Point current = new Point(0, 0);
-        aStar(current, goal, path);
+        aStar(current, goal, path, validPoints);
         ArrayList<Point> output = new ArrayList<>();
-        for(State s : path){
+        for (State s : path) {
             output.add(s.position);
         }
         return output;
     }
 
     /** aStar search algorithm implementation */
-    public static void aStar(Point current, Point goal, ArrayList<State> path) {
+    public static void aStar(Point current, Point goal, ArrayList<State> path, List<Point> validPoints) {
         PriorityQueue<State> costs = new PriorityQueue<>(Comparator.comparingInt(a -> a.cost));
         Map<Point, Integer> costAtPt = new HashMap<>();
         Map<State, State> cameFrom = new HashMap<>();
@@ -410,36 +414,29 @@ public class Distancing {
                 Collections.reverse(path);
                 return;
             }
-            // add cost if the smallest minimum distance decreases
-            // the issue is that we aren't adding extra cost for a decrease in the smallest
-            // minimum distance
-            Point neighbourY = new Point(curr.position.x, curr.position.y + 1);
-            Point neighbourX = new Point(curr.position.x + 1, curr.position.y);
 
-            int costY = curr.cost + heuristic(neighbourY, goal) + (minChanges(neighbourY, curr.closestEver) * 2);
-            int costX = curr.cost + heuristic(neighbourX, goal) + (minChanges(neighbourX, curr.closestEver) * 2);
-            // System.out.println("Y " + costY + " " + neighbourX.x + " " + neighbourX.y +
-            // "\nX " + costX + " " + neighbourY.x + " " + neighbourY.y);
-            if (curr.closestPt < closestPointDistance(neighbourY)) {
-                costY += (closestPointDistance(neighbourY) - curr.closestPt) * 99;
-            }
-            if (curr.closestPt < closestPointDistance(neighbourX)) {
-                costX += (closestPointDistance(neighbourX) - curr.closestPt) * 99;
-            }
-            // below this is fine
-            if (!costAtPt.containsKey(neighbourY) || costY < costAtPt.get(neighbourY)) {
-                costAtPt.put(neighbourY, costY);
-                HashMap<Point, Integer> yClosest = closestEver(neighbourY, curr.closestEver);
-                State temp = new State(neighbourY, yClosest, costY);
-                costs.add(temp);
-                cameFrom.put(temp, curr);
-            }
-            if (!costAtPt.containsKey(neighbourX) || costX < costAtPt.get(neighbourX)) {
-                costAtPt.put(neighbourX, costX);
-                HashMap<Point, Integer> xClosest = closestEver(neighbourX, curr.closestEver);
-                State temp = new State(neighbourX, xClosest, costX);
-                costs.add(temp);
-                cameFrom.put(temp, curr);
+            Point[] neighbours = {
+                    new Point(curr.position.x, curr.position.y + 1),
+                    new Point(curr.position.x + 1, curr.position.y),
+                    new Point(curr.position.x, curr.position.y - 1),
+                    new Point(curr.position.x - 1, curr.position.y)
+            };
+
+            for (Point neighbour : neighbours) {
+                if (validPoints.contains(neighbour)) {
+                    int newCost = curr.cost + heuristic(neighbour, goal);
+                    if (curr.closestPt < closestPointDistance(neighbour)) {
+                        newCost += (closestPointDistance(neighbour) - curr.closestPt) * 99;
+                    }
+
+                    if (!costAtPt.containsKey(neighbour) || newCost < costAtPt.get(neighbour)) {
+                        costAtPt.put(neighbour, newCost);
+                        HashMap<Point, Integer> closest = closestEver(neighbour, curr.closestEver);
+                        State temp = new State(neighbour, closest, newCost);
+                        costs.add(temp);
+                        cameFrom.put(temp, curr);
+                    }
+                }
             }
         }
     }

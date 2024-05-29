@@ -5,6 +5,7 @@ public class Distancing {
     private static HashSet<Point> people = new HashSet<>();
     private static int[] gridSize = new int[2];
     private static HashMap<Point, Integer> closestToPerson = new HashMap<>();
+    // datafields to handle DFS if it runs over time
     private static long startTime;
     private static long maxDuration = 1000;
     private static boolean overTime = false;
@@ -46,14 +47,10 @@ public class Distancing {
             List<Point> useablePoints = filterPointsByDistance(minimumValue);
             total = findBestPath(useablePoints);
             if (overTime) {
-                System.out.print("over time - ");
                 total = getTotal(aStarter());
             }
 
             System.out.println("min " + minimumValue + ", total " + total);
-            // if (args.length!=0 && args[0].equals("-v")) {
-            // visualisation(bestPath);
-            // }
             people.clear();
             overTime = false;
         }

@@ -5,6 +5,9 @@ public class Distancing {
     private static HashSet<Point> people = new HashSet<>();
     private static int[] gridSize = new int[2];
     private static HashMap<Point, Integer> closestToPerson = new HashMap<>();
+    private static long startTime;
+    private static long maxDuration = 5000;
+    private static boolean overTime = false;
     public static void main(String[] args) {
         // get input
         ArrayList<ArrayList<int[]>> scenarios = stdIn();
@@ -38,19 +41,20 @@ public class Distancing {
                 }
                 workingMap = temp;
             }
-            int total;
+            int total = 0;
             List<Point> useablePoints = filterPointsByDistance(minimumValue);
-            if(gridSize[0]*gridSize[1]<100 && people.size()<10){
-                total = findBestPath(useablePoints);
-            }else{
+            total = findBestPath(useablePoints);
+            if (overTime) {
+                System.out.print("over time - ");
                 total = getTotal(aStarter());
             }
-            
+        
             System.out.println("min " + minimumValue + ", total " + total);
             //if (args.length!=0 && args[0].equals("-v")) {
             //    visualisation(bestPath);
             //}
             people.clear();
+            overTime = false;
         }
     }
 
@@ -78,18 +82,12 @@ public class Distancing {
         Set<Integer> pathTotals = new HashSet<>();
         pathTotals.add(getTotal(aStarter()));
 
+        startTime = System.currentTimeMillis();
         // perform a depth-first search to find all possible paths and their totals
         dfs(start, end, availablePoints, new ArrayList<>(), pathTotals);
 
-        // find the path with the largest "total" and return it
-        /*Set<Point> bestBranch = null;
-        int maxTotal = Integer.MIN_VALUE;
-        for (Map.Entry<Set<Point>, Integer> entry : pathTotals.entrySet()) {
-            if (entry.getValue() > maxTotal) {
-                maxTotal = entry.getValue();
-                bestBranch = entry.getKey();
-            }
-        }*/
+
+
         int bestBranch = 0;
         for(int i : pathTotals){
             if(i>bestBranch){
@@ -112,6 +110,13 @@ public class Distancing {
     private static void dfs(Point current, Point end, List<Point> availablePoints, List<Point> path,
             Set<Integer> pathTotals) {
         path.add(current);
+        if (System.currentTimeMillis() - startTime >= maxDuration) {
+            overTime = true;
+            return;
+        }
+        if (overTime) {
+            return;
+        }
         if(getTotal(path)<=bestTotal(pathTotals)){
             path.remove(current);
             return;
